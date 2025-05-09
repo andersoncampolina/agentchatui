@@ -1,0 +1,52 @@
+# Agent UI Project Intelligence
+
+## Component Structure
+
+- UI components are placed in src/components/ui/
+- Common utility components are in src/components/common/
+- Application-specific components are in src/components/application/
+- New components should follow the existing pattern of their category
+
+## Styling Conventions
+
+- Use Tailwind CSS for all styling
+- Follow existing class naming patterns for consistency
+- Use the class-variance-authority pattern for component variants
+- Prefer utility classes over custom CSS when possible
+
+## File Structure
+
+- React components use .tsx extension
+- API routes are placed in src/app/api/
+- Real-time features are in src/app/realtime/
+- Utility functions go in src/lib/
+
+## Code Conventions
+
+- Use TypeScript for type safety
+- Use React functional components with hooks
+- Use 'use client' directive for client-side components
+- Follow existing error handling patterns
+- Use async/await for asynchronous operations
+
+## UI/UX Preferences
+
+- Clean, minimal design aesthetic
+- Responsive layouts that work on all device sizes
+- Loading states for all asynchronous operations
+- Smooth animations for transitions
+- Clear error messages for failed operations
+
+## API Patterns
+
+- Use Next.js API routes for backend functionality
+- Use fetch API for client-side requests
+- Follow established error handling patterns
+- Structure API requests with consistent JSON formatting
+
+## Project Workflow
+
+- Implement core functionality first before adding enhancements
+- Maintain consistency with existing patterns
+- Focus on user experience and visual polish
+- Ensure responsive design works on multiple devices
