@@ -23,9 +23,10 @@ src/
 
 ### Component Organization
 
-- **UI Components**: Base-level UI primitives following a design system approach
-- **Common Components**: Reusable components that can be used across features
-- **Application Components**: Feature-specific components tied to business logic
+- **UI Components**: Base-level UI primitives following a design system approach, located in `src/components/ui/`.
+- **Common Components**: Reusable components that can be used across features, located in `src/components/common/`.
+- **Application Components**: Feature-specific components tied to business logic, located in `src/components/application/`.
+- New components should follow the existing pattern of their category.
 
 ### State Management
 
@@ -56,9 +57,11 @@ src/
 
 ### Styling Approach
 
-- **Tailwind CSS**: Used for utility-first CSS styling
-- **Component-based styling**: Each component manages its own styles
-- **Global styles**: Minimal global styles defined in globals.css
+- **Tailwind CSS**: Used for utility-first CSS styling. Prefer utility classes over custom CSS.
+- **Component-based styling**: Each component manages its own styles.
+- **class-variance-authority (CVA)**: Used for creating component variants with consistent styling.
+- **Global styles**: Minimal global styles defined in `globals.css`.
+- Follow existing class naming patterns for consistency.
 
 ### API Integration
 
@@ -72,3 +75,12 @@ src/
 - InputChat component manages state and API communication
 - UI components (Button, Textarea) provide the interactive elements
 - Common components (FadeInText) provide enhanced visual feedback
+
+## Code Conventions
+
+- **TypeScript**: For type safety and improved developer experience. React components use `.tsx`.
+- **React Functional Components**: Utilize functional components with React Hooks.
+- **'use client' Directive**: Use for client-side components as per Next.js App Router conventions.
+- **Error Handling**: Follow existing error handling patterns for consistency.
+- **Asynchronous Operations**: Use `async/await` for promises.
+- **JSON Formatting**: Maintain consistent JSON formatting for API requests.

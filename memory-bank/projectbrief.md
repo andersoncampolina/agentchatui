@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Agent UI is a Next.js application that provides a user interface for interacting with AI models. It's designed as a SaaS product that allows users to input prompts and receive AI-generated responses, including image generation capabilities.
+Agent UI is an open-source Next.js web application that provides a simple but powerful interface to connect with many AI models and agent/automation tools, such as n8n and others via webhooks. It allows users to input prompts and receive AI-generated responses, including image generation capabilities. The project also plans to support MCP (Multi-Capability Platform/Protocol) connections in the near future.
 
 ## Core Requirements
 
@@ -13,10 +13,11 @@ Agent UI is a Next.js application that provides a user interface for interacting
 
 ## Goals
 
-- Create a responsive, modern UI for AI interactions
+- Create a responsive, modern UI for AI interactions, similar to an OpenAI or Anthropic chat interface
 - Ensure smooth user experience during loading/generation states
-- Support various AI capabilities as the project evolves
+- Support various AI capabilities and global connectivity with any agent as the project evolves
 - Implement real-time functionality for immediate feedback
+- Provide an intuitive and easy-to-understand interface for users to interact with AI services
 
 ## Project Scope
 

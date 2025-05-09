@@ -6,11 +6,11 @@ Modern AI capabilities are powerful but often lack accessible, user-friendly int
 
 ## Solution
 
-Agent UI serves as a bridge between advanced AI models and end-users, offering:
+Agent UI serves as a bridge between advanced AI models/agent automation tools and end-users, offering:
 
-- A clean, intuitive chat interface for sending prompts
+- A clean, intuitive chat interface (akin to OpenAI/Anthropic UIs) for sending prompts
 - Beautiful display of AI-generated content, including images
-- Seamless integration with AI services through API webhooks
+- Seamless integration with AI services and automation tools (e.g., n8n) through API webhooks, aiming for global connectivity
 - Real-time feedback and responsive design
 
 ## User Experience Goals
@@ -32,6 +32,7 @@ Agent UI serves as a bridge between advanced AI models and end-users, offering:
 
 - Focus on visual aesthetics with modern, clean UI elements
 - Optimized for both text and image generation workflows
+- Broad connectivity with various AI services and automation tools via webhooks
 - Real-time capabilities for immediate feedback
 - Simplified interface that hides technical complexity
 
