@@ -20,7 +20,12 @@ export async function POST(request: Request) {
   const basicAuth = Buffer.from(`${username}:${password}`).toString('base64');
 
   // Create a JSON payload
-  const jsonPayload: Record<string, any> = {};
+  const jsonPayload: Record<string, any> = {
+    model: body.model,
+    prompt: body.prompt,
+    webhookId: body.webhookId,
+    conversationId: body.conversationId,
+  };
 
   // Process all properties in the body object
   for (const [key, value] of Object.entries(body)) {

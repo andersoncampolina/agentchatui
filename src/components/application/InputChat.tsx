@@ -30,8 +30,8 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
         body: JSON.stringify({
           model: model,
           prompt: userInput,
-          webhookId: 'responses',
-          // timestamp: new Date().toISOString(),
+          webhookId: 'conversation',
+          conversationId: '123',
         }),
       });
 
@@ -41,9 +41,9 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
 
       const data = await response.json();
       console.log('DATA: ', data);
-      setText(JSON.stringify(data, null, 2));
+      // setText(JSON.stringify(data, null, 2));
       if (data.b64_json) setImage(data.b64_json);
-      if (data.text) setText(data.text);
+      if (data[0].output) setText(data[0].output);
 
       // Clear input after successful submission
       setUserInput('');
@@ -68,7 +68,7 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
           </div>
         )}
         {text && (
-          <div className="flex flex-col gap-10 pb-20 max-w-7xl">
+          <div className="flex flex-col gap-10 pb-20 max-w-7xl p-8">
             <FadeInText>{text}</FadeInText>
           </div>
         )}
