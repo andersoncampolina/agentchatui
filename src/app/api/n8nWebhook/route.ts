@@ -19,36 +19,42 @@ export async function POST(request: Request) {
   // Create basic authentication header
   const basicAuth = Buffer.from(`${username}:${password}`).toString('base64');
 
-  // Create FormData and add required fields
-  const formData = new FormData();
+  // Create a JSON payload
+  const jsonPayload: Record<string, any> = {};
 
-  // Loop through all properties in the body object and append them to formData
+  // Process all properties in the body object
   for (const [key, value] of Object.entries(body)) {
-    // Handle image fields specially
+    // Handle image fields specially - convert to base64
     if (key === 'image' && typeof value === 'string') {
       try {
-        const imageBlob = await fetch(value).then((r) => r.blob());
-        formData.append(key, imageBlob, 'image.jpg');
+        const imageResponse = await fetch(value);
+        const imageBuffer = await imageResponse.arrayBuffer();
+        const base64Image = Buffer.from(imageBuffer).toString('base64');
+
+        // Get the mime type from the response
+        const contentType =
+          imageResponse.headers.get('content-type') || 'image/jpeg';
+
+        // Format as data URL
+        jsonPayload[key] = `data:${contentType};base64,${base64Image}`;
       } catch (error) {
-        console.error(`Failed to fetch image: ${error}`);
+        console.error(`Failed to fetch and encode image: ${error}`);
       }
     }
-    // Handle all other fields
+    // Handle all other fields normally
     else if (value !== undefined && value !== null) {
-      // Convert objects/arrays to strings if needed
-      const fieldValue =
-        typeof value === 'object' ? JSON.stringify(value) : value.toString();
-      formData.append(key, fieldValue);
+      jsonPayload[key] = value;
     }
   }
 
-  // Send request with FormData
+  // Send request with JSON body
   const response = await fetch(webhookUrl, {
     method: 'POST',
     headers: {
       Authorization: `Basic ${basicAuth}`,
+      'Content-Type': 'application/json',
     },
-    body: formData,
+    body: JSON.stringify(jsonPayload),
     cache: 'no-store',
   });
 
