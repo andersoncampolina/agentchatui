@@ -1,4 +1,4 @@
-# Agent UI Project Intelligence
+# Agent UI Project Intelligence for this project
 
 ## Component Structure
 
@@ -19,7 +19,7 @@
 - React components use .tsx extension
 - API routes are placed in src/app/api/
 - Real-time features are in src/app/realtime/
-- Utility functions go in src/lib/
+- Utility and server functions go in src/lib/
 
 ## Code Conventions
 
