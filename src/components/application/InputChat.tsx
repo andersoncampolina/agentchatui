@@ -2,8 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { useState } from 'react';
-import FadeInText from '../common/FadeInText';
+import { useState, KeyboardEvent } from 'react';
 import FormatMarkdown from '../common/FormatMarkDown';
 
 interface InputChatProps {
@@ -56,6 +55,13 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
     }
   };
 
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(userInput);
+    }
+  };
+
   return (
     <div className="flex flex-col w-full max-w-full gap-4 items-center">
       <div className="rounded-md overflow-auto pb-20">
@@ -70,9 +76,7 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
         )}
         {text && (
           <div className="flex flex-col gap-10 pb-20 max-w-7xl p-8">
-            {/* <FadeInText> */}
             <FormatMarkdown>{text}</FormatMarkdown>
-            {/* </FadeInText> */}
           </div>
         )}
       </div>
@@ -81,6 +85,7 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
           <Textarea
             value={userInput}
             onChange={(e) => setUserInput(e.target.value)}
+            onKeyDown={handleKeyDown}
             className="bg-white/60 backdrop-blur"
             placeholder="Ask anything..."
             disabled={isLoading}
