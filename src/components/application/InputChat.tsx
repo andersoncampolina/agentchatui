@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useState } from 'react';
 import FadeInText from '../common/FadeInText';
+import FormatMarkdown from '../common/FormatMarkDown';
 
 interface InputChatProps {
   model?: string;
@@ -69,7 +70,9 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
         )}
         {text && (
           <div className="flex flex-col gap-10 pb-20 max-w-7xl p-8">
-            <FadeInText>{text}</FadeInText>
+            {/* <FadeInText> */}
+            <FormatMarkdown>{text}</FormatMarkdown>
+            {/* </FadeInText> */}
           </div>
         )}
       </div>
