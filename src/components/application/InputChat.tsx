@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useState, KeyboardEvent } from 'react';
 import FormatMarkdown from '../common/FormatMarkDown';
+import { PulseLoader } from 'react-spinners';
 
 interface InputChatProps {
   model?: string;
@@ -91,12 +92,24 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
             disabled={isLoading}
           />
           <Button
-            className="rounded-full p-3.5 cursor-pointer font-extrabold bg-black/80 backdrop-blur"
+            className="rounded-full cursor-pointer font-extrabold bg-[var(--primary-color)] backdrop-blur h-12 w-12 text-2xl"
             onClick={() => handleSubmit(userInput)}
             type="submit"
             disabled={isLoading}
           >
-            {isLoading ? '...' : '↑'}
+            {isLoading ? (
+              <PulseLoader
+                size={8}
+                color="white "
+                style={{
+                  background: 'black',
+                  alignItems: 'center',
+                  display: 'flex',
+                }}
+              />
+            ) : (
+              '↑'
+            )}
           </Button>
         </div>
       </div>
