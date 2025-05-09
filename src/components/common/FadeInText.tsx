@@ -41,14 +41,17 @@ const FadeInText: React.FC<FadeInTextProps> = ({
   }, [children, charDelay, initialDelay]);
 
   return (
-    <p className={`${className} text-justify`}>
+    <p className={`${className} text-justify font-mono tracking-wide`}>
       {children.split('').map((char, idx) => (
         <span
           key={idx}
-          style={{
-            opacity: idx < visibleChars ? 1 : 0,
-            transition: 'opacity 0.3s ease',
-          }}
+          className={`
+            ${idx < visibleChars ? 'opacity-100' : 'opacity-0'}
+            transition-opacity duration-300 ease-in-out
+            font-['Courier_New',_Courier,_monospace]
+            tracking-tighter
+            font-bold
+          `}
         >
           {char}
         </span>
