@@ -26,7 +26,7 @@ export function InputChat() {
         body: JSON.stringify({
           model: 'gpt-image-1',
           prompt: userInput,
-          webhookId: 'pixerize',
+          webhookId: 'responses',
           // timestamp: new Date().toISOString(),
         }),
       });
@@ -51,38 +51,27 @@ export function InputChat() {
 
   return (
     <div className="flex flex-col w-full max-w-full gap-4 items-center">
-      {/* {response && ( */}
-      <div className="rounded-md overflow-auto pb-20">
-        {/* {responseImage && ( */}
-        <div className="flex flex-col gap-10 pb-20 max-w-7xl">
-          {/* <img
-              src={`data:image/png;base64,${responseImage}`}
-              alt="Generated Image"
-              className="w-full h-auto"
-            /> */}
-          <img
+      {response && (
+        <div className="rounded-md overflow-auto pb-20">
+          {responseImage && (
+            <div className="flex flex-col gap-10 pb-20 max-w-7xl">
+              <img
+                src={`data:image/png;base64,${responseImage}`}
+                alt="Generated Image"
+                className="w-full h-auto"
+              />
+              {/* <img
             src={
               'https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Sunflower_from_Silesia2.jpg/1280px-Sunflower_from_Silesia2.jpg'
             }
             alt="Generated Image"
             className="w-full h-auto rounded-2xl"
-          />
-          {/* <p className="text-sm">{response.prompt}</p> */}
-          <FadeInText>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
-            eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim
-            ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-            aliquip ex ea commodo consequat. Duis aute irure dolor in
-            reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-            pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-            culpa qui officia deserunt mollit anim id est laborum. Sed ut
-            perspiciatis unde omnis iste natus error sit voluptatem accusantium
-            doloremque laudantium.
-          </FadeInText>
+          /> */}
+              <FadeInText>{response.prompt}</FadeInText>
+            </div>
+          )}
         </div>
-        {/* )} */}
-      </div>
-      {/* )} */}
+      )}
       <div className="fixed bottom-0 left-0 right-0 pb-5 flex items-center w-full justify-center bg-transparent">
         <div className="flex items-center w-full max-w-3xl p-4 gap-3 bg-transparent">
           <Textarea
