@@ -4,7 +4,7 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { coldarkCold } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface FormatMarkdownProps {
   children: string;
@@ -20,7 +20,13 @@ const FormatMarkdown: React.FC<FormatMarkdownProps> = ({ children }) => {
             const match = /language-(\w+)/.exec(className || '');
             return !inline && match ? (
               <SyntaxHighlighter
-                style={vscDarkPlus as any}
+                style={coldarkCold as any}
+                customStyle={{
+                  backgroundColor: 'var(--quinary-color)',
+                  padding: '1rem',
+                  borderRadius: '0.5rem',
+                  boxShadow: '0 0 10px 0 rgba(0, 0, 0, 0.3)',
+                }}
                 language={match[1]}
                 PreTag="div"
                 {...props}
@@ -44,39 +50,39 @@ const FormatMarkdown: React.FC<FormatMarkdownProps> = ({ children }) => {
           ),
           h2: ({ node, ...props }: any) => (
             <h2
-              className="text-xl font-bold my-3 text-[var(--secondary-color)]"
+              className="text-xl font-bold my-3 text-[var(--primary-color)]"
               {...props}
             />
           ),
           h3: ({ node, ...props }: any) => (
             <h3
-              className="text-lg font-bold my-2 text-[var(--secondary-color)]"
+              className="text-lg font-bold my-2 text-[var(--primary-color)]"
               {...props}
             />
           ),
           h4: ({ node, ...props }: any) => (
             <h4
-              className="text-base font-bold my-2 text-[var(--tertiary-color)]"
+              className="text-base font-bold my-2 text-[var(--secondary-color)]"
               {...props}
             />
           ),
           p: ({ node, ...props }: any) => (
-            <p className="my-2 text-[var(--tertiary-color)]" {...props} />
+            <p className="my-2 text-[var(--primary-color)]" {...props} />
           ),
           ul: ({ node, ...props }: any) => (
             <ul
-              className="list-disc pl-6 my-2 text-[var(--tertiary-color)]"
+              className="list-disc pl-6 my-2 text-[var(--secondary-color)]"
               {...props}
             />
           ),
           ol: ({ node, ...props }: any) => (
             <ol
-              className="list-decimal pl-6 my-2 text-[var(--tertiary-color)]"
+              className="list-decimal pl-6 my-2 text-[var(--secondary-color)]"
               {...props}
             />
           ),
           li: ({ node, ...props }: any) => (
-            <li className="my-1 text-[var(--tertiary-color)]" {...props} />
+            <li className="my-1 text-[var(--secondary-color)]" {...props} />
           ),
           a: ({ node, ...props }: any) => (
             <a
@@ -86,7 +92,7 @@ const FormatMarkdown: React.FC<FormatMarkdownProps> = ({ children }) => {
           ),
           blockquote: ({ node, ...props }: any) => (
             <blockquote
-              className="border-l-4 border-[var(--quaternary-color)] pl-4 italic my-2 text-[var(--tertiary-color)]"
+              className="border-l-4 border-[var(--tertiary-color)] pl-4 italic my-2 text-[var(--secondary-color)]"
               {...props}
             />
           ),
