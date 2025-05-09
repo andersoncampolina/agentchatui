@@ -1,36 +1,66 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
-  const { input } = await req.json();
+  const { prompt, images } = await req.json();
 
-  if (!input) {
-    return NextResponse.json({ error: 'Missing input' }, { status: 400 });
+  if (!prompt && (!images || images.length === 0)) {
+    return NextResponse.json(
+      { error: 'You must provide a prompt, an image, or both.' },
+      { status: 400 }
+    );
+  }
+
+  // Build input array
+  const input: any[] = [];
+
+  if (prompt) {
+    input.push({
+      type: 'text',
+      text: prompt,
+    });
+  }
+
+  if (images && Array.isArray(images)) {
+    for (const image of images) {
+      if (typeof image === 'string' && image.startsWith('data:image/')) {
+        input.push({
+          type: 'image_url',
+          image_url: {
+            url: image,
+          },
+        });
+      } else {
+        return NextResponse.json(
+          { error: 'Each image must be a valid base64 data URL.' },
+          { status: 400 }
+        );
+      }
+    }
   }
 
   try {
-    const openaiRes = await fetch('https://api.openai.com/v1/responses', {
+    const res = await fetch('https://api.openai.com/v1/responses', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4.1',
+        model: 'gpt-4o',
         input,
       }),
     });
 
-    if (!openaiRes.ok) {
-      const error = await openaiRes.json();
-      return NextResponse.json({ error }, { status: openaiRes.status });
+    if (!res.ok) {
+      const err = await res.json();
+      return NextResponse.json({ error: err }, { status: res.status });
     }
 
-    const data = await openaiRes.json();
-
+    const data = await res.json();
     return NextResponse.json({ output: data.output_text });
-  } catch (err) {
+  } catch (error) {
     return NextResponse.json(
-      { error: 'Unexpected error', detail: String(err) },
+      { error: 'Unexpected error', detail: String(error) },
       { status: 500 }
     );
   }
