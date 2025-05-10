@@ -114,10 +114,10 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
   };
 
   return (
-    <div className="flex flex-col w-full max-w-4xl gap-4 items-center">
-      <div className="w-full rounded-md overflow-x-hidden overflow-y-auto pb-20">
+    <div className="flex flex-col w-full max-w-4xl gap-4 items-center px-2 sm:px-4">
+      <div className="w-full rounded-md overflow-x-hidden overflow-y-auto pb-20 p-2">
         {image && (
-          <div className="flex flex-col gap-6 pb-10 w-full max-w-full px-2 sm:px-4">
+          <div className="flex flex-col gap-6 pb-10 w-full max-w-full">
             <img
               src={`data:image/png;base64,${image}`}
               alt="Generated Image"
@@ -126,7 +126,7 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
           </div>
         )}
         {messages && (
-          <div className="flex flex-col gap-4 pb-20 w-full max-w-full px-2 sm:px-4 md:px-8">
+          <div className="flex flex-col gap-4 pb-20 w-full max-w-full">
             {messages.map((message, index) => (
               <div
                 key={index}
@@ -135,7 +135,6 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
                     ? 'ml-auto max-w-[90%] sm:max-w-[80%] shadow-[0_0_10px_rgba(59,130,246,0.9)] border-[1px] border-[var(--quaternary-color)]'
                     : 'mr-auto max-w-[90%] sm:max-w-[80%] shadow-[0_0_10px_rgba(107,114,128,0.9)] border-[1px] border-[var(--quaternary-color)]'
                 } overflow-hidden break-words w-fit`}
-                style={{ maxWidth: 'calc(100vw - 16px)' }}
               >
                 <div className="w-full max-w-full overflow-hidden">
                   <FormatMarkdown>{message.kwargs.content}</FormatMarkdown>
