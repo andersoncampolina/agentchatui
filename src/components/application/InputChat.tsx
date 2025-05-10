@@ -116,7 +116,7 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
 
   return (
     <div className="flex flex-col w-full max-w-full gap-4 items-center">
-      <div className="w-full rounded-md overflow-x-hidden overflow-y-auto pb-20">
+      <div className="max-w-4xl rounded-md overflow-x-hidden overflow-y-auto pb-20 pt-3">
         {image && (
           <div className="flex flex-col gap-6 pb-10 w-full max-w-full px-2 sm:px-4">
             <img
