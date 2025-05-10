@@ -61,6 +61,25 @@ The project follows a three-tier component architecture:
 2. **Common Components** (`src/components/common/`): Shared utility components (FormatMarkdown, FadeInText, etc.)
 3. **Application Components** (`src/components/application/`): Feature-specific components (InputChat, etc.)
 
+### Responsive Design Approach
+
+The project implements a mobile-first responsive design strategy using:
+
+1. **Tailwind Breakpoints**: Using responsive modifiers (`sm:`, `md:`, `lg:`, `xl:`) to create adaptive layouts
+2. **Container-Based Layouts**: Fluid containers that adapt to different screen sizes
+3. **Overflow Management**: Proper handling of content overflow for various screen sizes
+   - `overflow-x-auto` for horizontal scrolling of wide content
+   - `overflow-hidden` to prevent unwanted scrollbars
+   - `break-words` for text wrapping on small screens
+4. **Responsive Typography**:
+   - Using Tailwind's `prose-sm`, `md:prose-base`, and `lg:prose-lg` for adaptive text sizing
+   - Reduced font sizes on mobile with `text-sm`/`text-base` patterns
+5. **Mobile-Optimized Components**:
+   - Smaller padding/margins on mobile devices
+   - Responsive input controls
+   - Touch-friendly UI elements
+   - Proper handling of tables and code blocks
+
 ### API Routes
 
 - **n8nWebhook** (`src/app/api/n8nWebhook/`): Handles communication with n8n workflows
@@ -81,6 +100,7 @@ The project follows a three-tier component architecture:
 - Client-side rendering for interactive components
 - Server components for static parts where possible
 - Efficient image loading and display
+- Responsive performance optimization for mobile devices
 
 ### Security
 
@@ -91,8 +111,9 @@ The project follows a three-tier component architecture:
 ### Compatibility
 
 - Modern browser support
-- Responsive design for various screen sizes
+- Responsive design for various screen sizes (mobile, tablet, desktop)
 - Progressive enhancement where possible
+- Mobile-first approach to ensure proper functionality on small screens
 
 ## Dependencies
 
@@ -171,3 +192,4 @@ Deployment requirements:
 - Add support for additional AI models and capabilities
 - Enhance error handling and recovery mechanisms
 - Implement performance monitoring and analytics
+- Further optimize responsive experience across all device types
