@@ -25,7 +25,7 @@ const FormatMarkdown: React.FC<FormatMarkdownProps> = ({ children }) => {
                   backgroundColor: 'var(--quinary-color)',
                   padding: '1rem',
                   borderRadius: '0.5rem',
-                  boxShadow: '0 0 10px 0 rgba(0, 0, 0, 0.3)',
+                  border: '1px solid var(--quaternary-color)',
                 }}
                 language={match[1]}
                 PreTag="div"
