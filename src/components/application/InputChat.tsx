@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { useState, KeyboardEvent } from 'react';
+import { useState, KeyboardEvent, useEffect, useRef } from 'react';
 import FormatMarkdown from '../common/FormatMarkDown';
 import { PulseLoader } from 'react-spinners';
 
@@ -28,6 +28,15 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[] | null>(null);
   const [image, setImage] = useState<any | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, image]);
 
   const handleSubmit = async (userInput: string) => {
     if (!userInput.trim()) return;
@@ -141,6 +150,7 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
                 </div>
               </div>
             ))}
+            <div ref={messagesEndRef} />
           </div>
         )}
       </div>
