@@ -6,6 +6,19 @@ import { useState, KeyboardEvent } from 'react';
 import FormatMarkdown from '../common/FormatMarkDown';
 import { PulseLoader } from 'react-spinners';
 
+interface Message {
+  lc: number;
+  type: string;
+  id: string[];
+  kwargs: {
+    content: string;
+    tool_calls?: any[];
+    invalid_tool_calls?: any[];
+    additional_kwargs: any;
+    response_metadata: any;
+  };
+}
+
 interface InputChatProps {
   model?: string;
 }
@@ -13,14 +26,14 @@ interface InputChatProps {
 export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
   const [userInput, setUserInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [text, setText] = useState<any | null>(null);
+  const [messages, setMessages] = useState<Message[] | null>(null);
   const [image, setImage] = useState<any | null>(null);
 
   const handleSubmit = async (userInput: string) => {
     if (!userInput.trim()) return;
 
     setIsLoading(true);
-    setText(null);
+    setMessages(null);
 
     try {
       const response = await fetch('/api/n8nWebhook', {
@@ -42,25 +55,63 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
 
       const data = await response.json();
       console.log('DATA: ', data);
-      // setText(JSON.stringify(data, null, 2));
+
       if (data.b64_json) setImage(data.b64_json);
-      if (data[0].output) setText(data[0].output);
+
+      // Check if data is an array and has messages property
+      if (Array.isArray(data) && data.length > 0 && data[0]?.messages) {
+        setMessages(data[0].messages);
+      } else if (data.messages) {
+        // If messages are directly on the data object
+        setMessages(data.messages);
+      } else {
+        // Create a fallback message if no messages are found
+        const fallbackMessage: Message = {
+          lc: 1,
+          type: 'constructor',
+          id: ['langchain_core', 'messages', 'AIMessage'],
+          kwargs: {
+            content:
+              'Received response but no messages were found in the data.',
+            additional_kwargs: {},
+            response_metadata: {},
+          },
+        };
+        setMessages([fallbackMessage]);
+      }
 
       // Clear input after successful submission
       setUserInput('');
     } catch (error: any) {
       console.error('Failed to send message:', error);
-      setText(`Error: ${error.message || 'Unknown error occurred'}`);
+      // Create an error message in the same format as the messages
+      const errorMessage: Message = {
+        lc: 1,
+        type: 'constructor',
+        id: ['langchain_core', 'messages', 'AIMessage'],
+        kwargs: {
+          content: `Error: ${error.message || 'Unknown error occurred'}`,
+          additional_kwargs: {},
+          response_metadata: {},
+        },
+      };
+      setMessages([errorMessage]);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Handle Enter key press to submit the message
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(userInput);
     }
+  };
+
+  // Helper function to determine message type
+  const isHumanMessage = (message: Message) => {
+    return message.id.includes('HumanMessage');
   };
 
   return (
@@ -75,9 +126,20 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
             />
           </div>
         )}
-        {text && (
-          <div className="flex flex-col gap-10 pb-20 max-w-7xl p-8">
-            <FormatMarkdown>{text}</FormatMarkdown>
+        {messages && (
+          <div className="flex flex-col gap-4 pb-20 max-w-7xl p-8">
+            {messages.map((message, index) => (
+              <div
+                key={index}
+                className={`p-4 rounded-lg ${
+                  isHumanMessage(message)
+                    ? 'bg-blue-100 ml-auto max-w-[80%]'
+                    : 'bg-gray-100 mr-auto max-w-[80%]'
+                }`}
+              >
+                <FormatMarkdown>{message.kwargs.content}</FormatMarkdown>
+              </div>
+            ))}
           </div>
         )}
       </div>
@@ -116,3 +178,5 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
     </div>
   );
 }
+
+export default InputChat;
