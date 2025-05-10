@@ -116,26 +116,26 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
 
   return (
     <div className="flex flex-col w-full max-w-full gap-4 items-center">
-      <div className="rounded-md overflow-auto pb-20">
+      <div className="w-full rounded-md overflow-x-hidden overflow-y-auto pb-20">
         {image && (
-          <div className="flex flex-col gap-10 pb-20 max-w-7xl">
+          <div className="flex flex-col gap-6 pb-10 w-full max-w-full px-2 sm:px-4">
             <img
               src={`data:image/png;base64,${image}`}
               alt="Generated Image"
-              className="w-full h-auto"
+              className="w-full h-auto rounded-md"
             />
           </div>
         )}
         {messages && (
-          <div className="flex flex-col gap-4 pb-20 max-w-7xl p-8">
+          <div className="flex flex-col gap-4 pb-20 w-full max-w-full px-2 sm:px-4 md:px-8">
             {messages.map((message, index) => (
               <div
                 key={index}
-                className={`p-4 rounded-lg ${
+                className={`p-3 sm:p-4 rounded-lg ${
                   isHumanMessage(message)
-                    ? 'ml-auto max-w-[80%] shadow-[0_0_10px_rgba(59,130,246,0.9)] border-[1px] border-[var(--quaternary-color)]'
-                    : 'mr-auto max-w-[80%] shadow-[0_0_10px_rgba(107,114,128,0.9)] border-[1px] border-[var(--quaternary-color)]'
-                }`}
+                    ? 'ml-auto max-w-[90%] sm:max-w-[80%] shadow-[0_0_10px_rgba(59,130,246,0.9)] border-[1px] border-[var(--quaternary-color)]'
+                    : 'mr-auto max-w-[90%] sm:max-w-[80%] shadow-[0_0_10px_rgba(107,114,128,0.9)] border-[1px] border-[var(--quaternary-color)]'
+                } overflow-hidden`}
               >
                 <FormatMarkdown>{message.kwargs.content}</FormatMarkdown>
               </div>
@@ -143,28 +143,27 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
           </div>
         )}
       </div>
-      <div className="fixed bottom-0 left-0 right-0 pb-5 flex items-center w-full justify-center bg-transparent">
-        <div className="flex items-center w-full max-w-3xl p-4 gap-3 bg-transparent">
+      <div className="fixed bottom-0 left-0 right-0 pb-2 sm:pb-5 flex items-center w-full justify-center bg-transparent">
+        <div className="flex items-center w-full max-w-[95%] sm:max-w-3xl px-2 sm:px-4 gap-2 sm:gap-3 bg-transparent">
           <Textarea
             value={userInput}
             onChange={(e) => setUserInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="bg-white/60 backdrop-blur"
+            className="bg-white/60 backdrop-blur rounded-md"
             placeholder="Ask anything..."
             disabled={isLoading}
           />
           <Button
-            className="rounded-full cursor-pointer font-extrabold bg-[var(--primary-color)] backdrop-blur h-12 w-12 text-2xl"
+            className="rounded-full cursor-pointer font-extrabold bg-[var(--primary-color)] backdrop-blur h-10 w-10 sm:h-12 sm:w-12 text-xl sm:text-2xl flex-shrink-0"
             onClick={() => handleSubmit(userInput)}
             type="submit"
             disabled={isLoading}
           >
             {isLoading ? (
               <PulseLoader
-                size={8}
-                color="white "
+                size={6}
+                color="white"
                 style={{
-                  background: 'black',
                   alignItems: 'center',
                   display: 'flex',
                 }}
