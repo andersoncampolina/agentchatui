@@ -133,8 +133,8 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
                 key={index}
                 className={`p-4 rounded-lg ${
                   isHumanMessage(message)
-                    ? 'bg-blue-100 ml-auto max-w-[80%]'
-                    : 'bg-gray-100 mr-auto max-w-[80%]'
+                    ? 'ml-auto max-w-[80%] shadow-[0_0_10px_rgba(59,130,246,0.9)]'
+                    : 'mr-auto max-w-[80%] shadow-[0_0_10px_rgba(107,114,128,0.9)]'
                 }`}
               >
                 <FormatMarkdown>{message.kwargs.content}</FormatMarkdown>
