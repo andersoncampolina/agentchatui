@@ -40,6 +40,16 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
 
   const handleSubmit = async (userInput: string) => {
     if (!userInput.trim()) return;
+    // adiciona dentro de messages o userInput
+    setMessages([
+      ...messages,
+      {
+        lc: 1,
+        type: 'constructor',
+        id: ['langchain_core', 'messages', 'HumanMessage'],
+        kwargs: { content: userInput },
+      },
+    ]);
 
     setIsLoading(true);
 
