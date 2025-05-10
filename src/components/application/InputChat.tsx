@@ -167,6 +167,7 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
                 style={{
                   alignItems: 'center',
                   display: 'flex',
+                  backgroundColor: 'var(--primary-color)',
                 }}
               />
             ) : (
