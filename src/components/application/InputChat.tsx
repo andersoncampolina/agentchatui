@@ -33,7 +33,6 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
     if (!userInput.trim()) return;
 
     setIsLoading(true);
-    setMessages(null);
 
     try {
       const response = await fetch('/api/n8nWebhook', {
