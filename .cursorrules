@@ -13,6 +13,7 @@
 - Follow existing class naming patterns for consistency
 - Use the class-variance-authority pattern for component variants
 - Prefer utility classes over custom CSS when possible
+- Use CSS variables for theme colors (--primary-color, --secondary-color, etc.)
 
 ## File Structure
 
@@ -28,6 +29,7 @@
 - Use 'use client' directive for client-side components
 - Follow existing error handling patterns
 - Use async/await for asynchronous operations
+- Use PulseLoader from react-spinners for loading states
 
 ## UI/UX Preferences
 
@@ -36,6 +38,7 @@
 - Loading states for all asynchronous operations
 - Smooth animations for transitions
 - Clear error messages for failed operations
+- Use FadeInText component for animated text display
 
 ## API Patterns
 
@@ -43,6 +46,16 @@
 - Use fetch API for client-side requests
 - Follow established error handling patterns
 - Structure API requests with consistent JSON formatting
+- Use the n8nWebhook API for external service communication
+- Format responses using the FormatMarkdown component
+
+## Component Patterns
+
+- InputChat component manages user input and API communication
+- FormatMarkdown component handles rich text display with syntax highlighting
+- Message responses follow a standardized format with lc, type, id, and kwargs properties
+- Handle both text responses and image responses (via base64 encoding)
+- Use conditional rendering for different response types
 
 ## Project Workflow
 

@@ -6,9 +6,12 @@
 - Basic UI components setup with Tailwind CSS styling
 - Main page layout with Agent UI branding
 - InputChat component with textarea and submit button
-- Loading states during API requests
+- Loading states during API requests implemented with PulseLoader
 - Display of generated images with base64 encoding
 - Error handling for API communication failures
+- FormatMarkdown component with syntax highlighting for code blocks
+- FadeInText component for animated text display
+- n8nWebhook API route for communication with external services
 
 ## What's In Progress
 
@@ -16,14 +19,17 @@
 - Enhanced image display options
 - Animation improvements for smoother transitions
 - Error message refinement for better user feedback
+- OpenAI API integration for direct model access
+- Model response processing and formatting
 
 ## What's Left to Build
 
 1. API Routes
 
-   - Implementation of the n8nWebhook API endpoint
+   - Complete implementation of OpenAI API endpoints
    - Error handling middleware for API requests
    - Response formatting and validation
+   - Support for more AI service providers
 
 2. Features
 
@@ -31,6 +37,7 @@
    - Support for additional AI models
    - Save/download options for generated content
    - User preferences for model selection
+   - Real-time streaming responses
 
 3. UI Enhancements
 
@@ -38,27 +45,30 @@
    - Dark/light mode toggle
    - More advanced animations and transitions
    - Accessibility improvements
+   - UI components for different response types
 
 4. Performance Optimizations
    - Image loading and caching strategies
    - API request optimization
    - Component rendering performance
+   - Error boundary implementation
 
 ## Current Status
 
-The project is in the early development phase with a functional UI prototype. The core components for user interaction are implemented, but the backend API integration is still being developed. The application can display UI elements and handle user input, but full AI service integration is pending.
+The project is in the early development phase with a functional UI prototype and initial API integration. The core components for user interaction are implemented, including the chat interface and n8n webhook integration. The application can display both text responses with markdown formatting and images from base64 data. The project structure follows the recommended three-tier component architecture.
 
 ## Known Issues
 
-- The API endpoint for n8nWebhook needs to be implemented
-- Error handling needs improvement for various failure scenarios
-- The UI is not fully responsive on all device sizes
 - No persistent storage for conversation history
 - Limited model options currently available
+- The UI is not fully responsive on all device sizes
+- Error handling needs improvement for various failure scenarios
+- No proper loading indicators for long-running operations
 
 ## Recent Achievements
 
-- Successfully set up the project with modern React and Next.js
-- Implemented the core UI components with clean design
-- Created the input interface for user prompts
-- Set up the image display functionality
+- Successfully implemented the InputChat component with n8n webhook integration
+- Created FormatMarkdown component for rendering rich-text responses
+- Added FadeInText component for animated text display
+- Implemented n8nWebhook API route for external service communication
+- Set up proper project structure with UI, common, and application components
