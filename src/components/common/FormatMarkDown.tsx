@@ -19,7 +19,7 @@ const FormatMarkdown: React.FC<FormatMarkdownProps> = ({ children }) => {
           code({ node, inline, className, children, ...props }: any) {
             const match = /language-(\w+)/.exec(className || '');
             return !inline && match ? (
-              <div className="overflow-x-auto w-full">
+              <div className="overflow-x-auto w-full max-w-[95vw] sm:max-w-full">
                 <SyntaxHighlighter
                   style={coldarkCold as any}
                   customStyle={{
@@ -29,6 +29,8 @@ const FormatMarkdown: React.FC<FormatMarkdownProps> = ({ children }) => {
                     border: '1px solid var(--quaternary-color)',
                     fontSize: '0.85rem',
                     maxWidth: '100%',
+                    wordBreak: 'break-word',
+                    whiteSpace: 'pre-wrap',
                   }}
                   wrapLongLines={true}
                   language={match[1]}
@@ -40,7 +42,7 @@ const FormatMarkdown: React.FC<FormatMarkdownProps> = ({ children }) => {
               </div>
             ) : (
               <code
-                className={`bg-[var(--quaternary-color)] text-[var(--primary-color)] px-1 rounded ${className}`}
+                className={`bg-[var(--quaternary-color)] text-[var(--primary-color)] px-1 rounded ${className} break-words`}
                 {...props}
               >
                 {children}
@@ -73,7 +75,7 @@ const FormatMarkdown: React.FC<FormatMarkdownProps> = ({ children }) => {
           ),
           p: ({ node, ...props }: any) => (
             <p
-              className="my-2 text-[var(--primary-color)] break-words"
+              className="my-2 text-[var(--primary-color)] break-words max-w-full overflow-hidden"
               {...props}
             />
           ),
@@ -90,7 +92,10 @@ const FormatMarkdown: React.FC<FormatMarkdownProps> = ({ children }) => {
             />
           ),
           li: ({ node, ...props }: any) => (
-            <li className="my-1 text-[var(--secondary-color)]" {...props} />
+            <li
+              className="my-1 text-[var(--secondary-color)] break-words"
+              {...props}
+            />
           ),
           a: ({ node, ...props }: any) => (
             <a
@@ -100,7 +105,7 @@ const FormatMarkdown: React.FC<FormatMarkdownProps> = ({ children }) => {
           ),
           blockquote: ({ node, ...props }: any) => (
             <blockquote
-              className="border-l-4 border-[var(--tertiary-color)] pl-2 md:pl-4 italic my-2 text-[var(--secondary-color)]"
+              className="border-l-4 border-[var(--tertiary-color)] pl-2 md:pl-4 italic my-2 text-[var(--secondary-color)] overflow-hidden"
               {...props}
             />
           ),
@@ -108,9 +113,15 @@ const FormatMarkdown: React.FC<FormatMarkdownProps> = ({ children }) => {
             <img className="max-w-full h-auto rounded-md my-2" {...props} />
           ),
           table: ({ node, ...props }: any) => (
-            <div className="overflow-x-auto w-full my-2">
+            <div className="overflow-x-auto w-full my-2 max-w-[95vw] sm:max-w-full">
               <table className="w-full border-collapse" {...props} />
             </div>
+          ),
+          pre: ({ node, ...props }: any) => (
+            <pre
+              className="overflow-x-auto max-w-[95vw] sm:max-w-full break-words whitespace-pre-wrap"
+              {...props}
+            />
           ),
         }}
       >
