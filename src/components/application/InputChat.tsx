@@ -30,6 +30,7 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[] | null>(null);
   const [image, setImage] = useState<any | null>(null);
+  const [conversationId, setConversationId] = useState(123);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -69,7 +70,7 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
           model: model,
           prompt: userInput,
           webhookId: 'conversation',
-          conversationId: '123',
+          conversationId: conversationId.toString(),
         }),
       });
 
@@ -140,6 +141,14 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
     return message.id.includes('HumanMessage');
   };
 
+  // Function to clear conversation and increment conversationId
+  const handleClearConversation = () => {
+    setMessages(null);
+    setImage(null);
+    setUserInput('');
+    setConversationId((prevId) => prevId + 1);
+  };
+
   return (
     <div className="flex flex-col w-full max-w-4xl gap-4 items-center px-2 sm:px-4">
       <div className="w-full rounded-md overflow-x-hidden overflow-y-auto pb-20 p-2">
@@ -176,6 +185,15 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
       </div>
       <div className="fixed bottom-0 left-0 right-0 pb-2 sm:pb-5 flex items-center w-full justify-center bg-transparent">
         <div className="flex items-center w-full max-w-[95%] sm:max-w-3xl px-2 sm:px-4 gap-2 sm:gap-3 bg-transparent">
+          <Button
+            className="pt-1 rounded-full cursor-pointer font-extrabold bg-[var(--primary-color)] backdrop-blur h-10 w-10 sm:h-12 sm:w-12 text-xl sm:text-2xl flex-shrink-0"
+            onClick={handleClearConversation}
+            type="button"
+            disabled={isLoading}
+            title="Clear conversation"
+          >
+            +
+          </Button>
           <Textarea
             value={userInput}
             onChange={(e) => setUserInput(e.target.value)}
