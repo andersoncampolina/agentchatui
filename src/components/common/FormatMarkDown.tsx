@@ -31,7 +31,7 @@ const FormatMarkdown: React.FC<FormatMarkdownProps> = ({
                 <SyntaxHighlighter
                   style={coldarkCold as any}
                   customStyle={{
-                    backgroundColor: 'transparent',
+                    backgroundColor: 'var(--quinary-color)',
                     padding: '0.5rem',
                     borderRadius: '0.5rem',
                     border: '1px solid var(--quaternary-color)',

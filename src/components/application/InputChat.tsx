@@ -33,6 +33,7 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
   const [image, setImage] = useState<any | null>(null);
   const [conversationId, setConversationId] = useState(123);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -42,8 +43,22 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
     scrollToBottom();
   }, [messages, image]);
 
+  // Keep focus on input field
+  useEffect(() => {
+    if (!isLoading) {
+      inputRef.current?.focus();
+    }
+  }, [isLoading]);
+
   const handleSubmit = async (userInput: string) => {
     if (!userInput.trim()) return;
+
+    // Create a copy of userInput for the API call
+    const message = userInput;
+
+    // Clear input immediately after submission
+    setUserInput('');
+
     // adiciona dentro de messages o userInput
     setMessages([
       ...(messages || []),
@@ -52,7 +67,7 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
         type: 'constructor',
         id: ['langchain_core', 'messages', 'HumanMessage'],
         kwargs: {
-          content: userInput,
+          content: message,
           additional_kwargs: {},
           response_metadata: {},
         },
@@ -69,7 +84,7 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
         },
         body: JSON.stringify({
           model: model,
-          prompt: userInput,
+          prompt: message,
           webhookId: 'conversation',
           conversationId: conversationId.toString(),
         }),
@@ -105,9 +120,6 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
         };
         setMessages([fallbackMessage]);
       }
-
-      // Clear input after successful submission
-      setUserInput('');
     } catch (error: unknown) {
       console.error('Failed to send message:', error);
       // Create an error message in the same format as the messages
@@ -198,12 +210,12 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
             </Button>
           </Tooltip>
           <Textarea
+            ref={inputRef}
             value={userInput}
             onChange={(e) => setUserInput(e.target.value)}
             onKeyDown={handleKeyDown}
             className="bg-white/60 backdrop-blur rounded-md"
             placeholder="Ask anything..."
-            disabled={isLoading}
           />
           <Tooltip text="Send message">
             <Button
