@@ -34,6 +34,7 @@
 
 2. **Features**
 
+   - Audio message sending capability
    - Conversation history
    - Additional model support
    - Save/download options
@@ -57,6 +58,7 @@ Early development with functional UI prototype and initial API integration. Core
 
 ## Known Issues
 
+- No audio message support yet
 - No conversation history storage
 - Limited model options
 - Error handling needs improvement

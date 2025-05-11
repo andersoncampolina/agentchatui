@@ -19,12 +19,12 @@
 
 ## Next Steps
 
-1. Implement conversation history
-2. Complete OpenAI API endpoints
-3. Enhance error handling
-4. Add save/download options for content
-5. Implement model selection preferences
-6. Continue improving responsive design
+1. Implement audio message sending capability
+2. Implement conversation history
+3. Complete OpenAI API endpoints
+4. Enhance error handling
+5. Add save/download options for content
+6. Implement model selection preferences
 
 ## Current Decisions
 
@@ -37,6 +37,7 @@
 
 ## Current Challenges
 
+- Audio message handling implementation
 - Responsive performance for image generation
 - Error handling for network issues
 - Mobile display optimization

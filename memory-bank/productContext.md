@@ -40,6 +40,7 @@ Agent UI connects users to AI models and automation tools through:
 
 The product roadmap includes:
 
+- Audio message sending capability
 - Multi-model support to switch between different AI capabilities
 - Conversation history and context management
 - User accounts for saving preferences and history
