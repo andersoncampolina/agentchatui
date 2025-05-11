@@ -2,74 +2,65 @@
 
 ## What Works
 
-- Project scaffolding with Next.js, React, and TypeScript
-- Basic UI components setup with Tailwind CSS styling
-- Main page layout with Agent UI branding
-- InputChat component with textarea and submit button
-- Loading states during API requests implemented with PulseLoader
-- Display of generated images with base64 encoding
-- Error handling for API communication failures
-- FormatMarkdown component with syntax highlighting for code blocks
-- FadeInText component for animated text display
-- n8nWebhook API route for communication with external services
-- Responsive design for mobile devices in FormatMarkDown and InputChat components
-  - Proper overflow handling for code blocks and content
-  - Adaptive font sizes and spacing for different screen sizes
-  - Optimized UI layouts for mobile interaction
+- Next.js, React, TypeScript setup
+- Basic UI components with Tailwind CSS
+- InputChat component with submit functionality
+- Loading states with PulseLoader
+- Image display with base64 encoding
+- Error handling for API failures
+- FormatMarkdown component with syntax highlighting
+- FadeInText component for animations
+- n8nWebhook API route
+- Mobile-responsive design
+  - Overflow handling for code blocks
+  - Adaptive spacing and sizing
+  - Mobile-optimized layouts
 
 ## What's In Progress
 
-- API webhook implementation for AI service communication
-- Enhanced image display options
-- Animation improvements for smoother transitions
-- Error message refinement for better user feedback
-- OpenAI API integration for direct model access
-- Model response processing and formatting
-- Extending responsive design patterns to remaining components
+- OpenAI API integration
+- Enhanced image display
+- Animation improvements
+- Error message refinement
+- Model response processing
 
 ## What's Left to Build
 
-1. API Routes
+1. **API Routes**
 
-   - Complete implementation of OpenAI API endpoints
-   - Error handling middleware for API requests
-   - Response formatting and validation
-   - Support for more AI service providers
+   - OpenAI API endpoints
+   - Error handling middleware
+   - Support for more AI services
 
-2. Features
+2. **Features**
 
-   - Conversation history to maintain context
-   - Support for additional AI models
-   - Save/download options for generated content
-   - User preferences for model selection
-   - Real-time streaming responses
+   - Conversation history
+   - Additional model support
+   - Save/download options
+   - User preferences
+   - Real-time streaming
 
-3. UI Enhancements
+3. **UI Enhancements**
 
-   - Dark/light mode toggle
-   - More advanced animations and transitions
+   - Dark/light mode
    - Accessibility improvements
-   - UI components for different response types
-   - Fine-tuning responsive behavior for more complex UI elements
+   - UI for different response types
 
-4. Performance Optimizations
-   - Image loading and caching strategies
+4. **Performance**
+   - Image loading optimization
    - API request optimization
-   - Component rendering performance
-   - Error boundary implementation
-   - Mobile-specific performance optimization
+   - Mobile performance improvements
 
 ## Current Status
 
-The project is in the early development phase with a functional UI prototype and initial API integration. The core components for user interaction are implemented, including the chat interface and n8n webhook integration. The application can display both text responses with markdown formatting and images from base64 data. The project structure follows the recommended three-tier component architecture. Recent improvements have focused on ensuring the UI is responsive across different device sizes.
+Early development with functional UI prototype and initial API integration. Core components (chat interface, n8n webhook) are implemented with support for displaying text (markdown) and images. UI is responsive across devices.
 
 ## Known Issues
 
-- No persistent storage for conversation history
-- Limited model options currently available
-- Error handling needs improvement for various failure scenarios
-- No proper loading indicators for long-running operations
-- Some complex markdown outputs may still need responsive refinement
+- No conversation history storage
+- Limited model options
+- Error handling needs improvement
+- Mobile responsive refinements needed
 
 ## Recent Achievements
 

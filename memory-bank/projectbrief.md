@@ -2,29 +2,29 @@
 
 ## Project Overview
 
-Agent UI is an open-source Next.js web application that provides a simple but powerful interface to connect with many AI models and agent/automation tools, such as n8n and others via webhooks. It allows users to input prompts and receive AI-generated responses, including image generation capabilities. The project also plans to support MCP (Multi-Capability Platform/Protocol) connections in the near future.
+Agent UI is an open-source Next.js web application providing a simple interface to connect with AI models and automation tools via webhooks. It supports text and image generation capabilities with plans for MCP connections.
 
 ## Core Requirements
 
-1. Provide a clean, intuitive interface for users to interact with AI services
-2. Support text-to-image generation with models like GPT-Image-1
-3. Display AI-generated content (images and text) with proper formatting
-4. Handle API requests to AI services via webhook integration
+1. Clean, intuitive interface for AI interactions
+2. Support for text and image generation
+3. Proper formatting of AI-generated content
+4. Webhook integration with tools like n8n
 
 ## Goals
 
-- Create a responsive, modern UI for AI interactions, similar to an OpenAI or Anthropic chat interface
-- Ensure smooth user experience during loading/generation states
-- Support various AI capabilities and global connectivity with any agent as the project evolves
-- Implement real-time functionality for immediate feedback
-- Provide an intuitive and easy-to-understand interface for users to interact with AI services
+- Modern, responsive UI for AI interactions
+- Smooth user experience with loading states
+- Support for various AI capabilities
+- Real-time feedback
+- Global connectivity with any agent
 
 ## Project Scope
 
-- Frontend application built with Next.js and React
-- Integration with external AI services via API
-- Responsive design for multiple device types
-- Modern UI with animations and clean aesthetics
+- Next.js frontend application
+- External AI service integration
+- Responsive design for all devices
+- Modern UI with clean aesthetics
 
 ## Non-Goals (Current Phase)
 
