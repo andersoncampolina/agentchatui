@@ -42,12 +42,16 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
     if (!userInput.trim()) return;
     // adiciona dentro de messages o userInput
     setMessages([
-      ...messages,
+      ...(messages || []),
       {
         lc: 1,
         type: 'constructor',
         id: ['langchain_core', 'messages', 'HumanMessage'],
-        kwargs: { content: userInput },
+        kwargs: {
+          content: userInput,
+          additional_kwargs: {},
+          response_metadata: {},
+        },
       },
     ]);
 
