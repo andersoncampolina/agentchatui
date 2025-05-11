@@ -155,12 +155,14 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
                 key={index}
                 className={`p-3 sm:p-4 rounded-lg ${
                   isHumanMessage(message)
-                    ? 'ml-auto max-w-[90%] sm:max-w-[80%] shadow-[0_0_10px_rgba(59,130,246,0.9)] border-[1px] border-[var(--quaternary-color)]'
-                    : 'mr-auto max-w-[90%] sm:max-w-[80%] shadow-[0_0_10px_rgba(107,114,128,0.9)] border-[1px] border-[var(--quaternary-color)]'
+                    ? 'ml-auto max-w-[90%] sm:max-w-[80%] shadow-[0_0_10px_rgba(59,130,246,0.9)] border-[1px] border-[var(--quaternary-color)] bg-[var(--tertiary-color)]'
+                    : 'mr-auto max-w-[90%] sm:max-w-[80%] shadow-[0_0_10px_rgba(107,114,128,0.9)] border-[1px] border-[var(--quaternary-color)] bg-[var(--quinary-color)] text-[var(--primary-color)]'
                 } overflow-hidden break-words w-fit`}
               >
-                <div className="w-full max-w-full overflow-hidden">
-                  <FormatMarkdown>{message.kwargs.content}</FormatMarkdown>
+                <div className="bg-transparent w-full max-w-full overflow-hidden">
+                  <FormatMarkdown isHumanMessage={isHumanMessage(message)}>
+                    {message.kwargs.content}
+                  </FormatMarkdown>
                 </div>
               </div>
             ))}
