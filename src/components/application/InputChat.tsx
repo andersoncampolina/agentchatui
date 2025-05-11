@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -104,7 +106,7 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
 
       // Clear input after successful submission
       setUserInput('');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to send message:', error);
       // Create an error message in the same format as the messages
       const errorMessage: Message = {
@@ -112,7 +114,9 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
         type: 'constructor',
         id: ['langchain_core', 'messages', 'AIMessage'],
         kwargs: {
-          content: `Error: ${error.message || 'Unknown error occurred'}`,
+          content: `Error: ${
+            error instanceof Error ? error.message : 'Unknown error occurred'
+          }`,
           additional_kwargs: {},
           response_metadata: {},
         },

@@ -17,7 +17,8 @@ export default function RealtimePage() {
 
     localStream.getTracks().forEach((track) => pc.addTrack(track, localStream));
 
-    const dataChannel = pc.createDataChannel('events');
+    // Create data channel but not used yet
+    pc.createDataChannel('events');
 
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);

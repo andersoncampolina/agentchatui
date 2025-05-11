@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import React from 'react';
@@ -22,7 +24,7 @@ const FormatMarkdown: React.FC<FormatMarkdownProps> = ({
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          code({ node, inline, className, children, ...props }: any) {
+          code({ inline, className, children, ...props }: any) {
             const match = /language-(\w+)/.exec(className || '');
             return !inline && match ? (
               <div className="bg-transparent overflow-x-auto w-full max-w-[95vw] sm:max-w-full">
@@ -55,73 +57,74 @@ const FormatMarkdown: React.FC<FormatMarkdownProps> = ({
               </code>
             );
           },
-          h1: ({ node, ...props }: any) => (
+          h1: ({ ...props }: any) => (
             <h1
               className={`bg-transparent text-xl md:text-2xl font-bold my-3 md:my-4 ${textColor}`}
               {...props}
             />
           ),
-          h2: ({ node, ...props }: any) => (
+          h2: ({ ...props }: any) => (
             <h2
               className={`bg-transparent text-lg md:text-xl font-bold my-2 md:my-3 ${textColor}`}
               {...props}
             />
           ),
-          h3: ({ node, ...props }: any) => (
+          h3: ({ ...props }: any) => (
             <h3
               className={`bg-transparent text-base md:text-lg font-bold my-2 ${textColor}`}
               {...props}
             />
           ),
-          h4: ({ node, ...props }: any) => (
+          h4: ({ ...props }: any) => (
             <h4
               className={`bg-transparent text-sm md:text-base font-bold my-1 md:my-2 ${textColor}`}
               {...props}
             />
           ),
-          p: ({ node, ...props }: any) => (
+          p: ({ ...props }: any) => (
             <p
               className={`bg-transparent my-2 ${textColor} break-words max-w-full overflow-hidden`}
               {...props}
             />
           ),
-          ul: ({ node, ...props }: any) => (
+          ul: ({ ...props }: any) => (
             <ul
               className={`bg-transparent list-disc pl-4 md:pl-6 my-2 ${textColor}`}
               {...props}
             />
           ),
-          ol: ({ node, ...props }: any) => (
+          ol: ({ ...props }: any) => (
             <ol
               className={`bg-transparent list-decimal pl-4 md:pl-6 my-2 ${textColor}`}
               {...props}
             />
           ),
-          li: ({ node, ...props }: any) => (
+          li: ({ ...props }: any) => (
             <li
               className={`bg-transparent my-1 ${textColor} break-words`}
               {...props}
             />
           ),
-          a: ({ node, ...props }: any) => (
+          a: ({ ...props }: any) => (
             <a
               className={`bg-transparent ${textColor} hover:underline break-words`}
               {...props}
             />
           ),
-          blockquote: ({ node, ...props }: any) => (
+          blockquote: ({ ...props }: any) => (
             <blockquote
               className={`bg-transparent border-l-4 border-[var(--tertiary-color)] pl-2 md:pl-4 italic my-2 ${textColor} overflow-hidden`}
               {...props}
             />
           ),
-          img: ({ node, ...props }: any) => (
+          img: ({ ...props }: any) => (
             <img
               className="bg-transparent max-w-full h-auto rounded-md my-2"
+              alt="Markdown image"
               {...props}
             />
           ),
-          table: ({ node, ...props }: any) => (
+          table: ({ ...props }: any) => (
             <div className="bg-transparent overflow-x-auto w-full my-2 max-w-[95vw] sm:max-w-full">
               <table
                 className={`bg-transparent w-full border-collapse ${textColor}`}
@@ -129,7 +132,7 @@ const FormatMarkdown: React.FC<FormatMarkdownProps> = ({
               />
             </div>
           ),
-          pre: ({ node, ...props }: any) => (
+          pre: ({ ...props }: any) => (
             <pre
               className={`bg-transparent overflow-x-auto max-w-[95vw] sm:max-w-full break-words whitespace-pre-wrap ${textColor}`}
               {...props}

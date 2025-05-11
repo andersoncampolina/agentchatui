@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   const basicAuth = Buffer.from(`${username}:${password}`).toString('base64');
 
   // Create a JSON payload
-  const jsonPayload: Record<string, any> = {
+  const jsonPayload: Record<string, unknown> = {
     model: body.model,
     prompt: body.prompt,
     webhookId: body.webhookId,

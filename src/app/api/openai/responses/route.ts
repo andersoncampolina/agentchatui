@@ -1,5 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+interface InputItem {
+  type: string;
+  text?: string;
+  image_url?: {
+    url: string;
+  };
+}
+
 export async function POST(req: NextRequest) {
   const { prompt, images } = await req.json();
 
@@ -11,7 +19,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Build input array
-  const input: any[] = [];
+  const input: InputItem[] = [];
 
   if (prompt) {
     input.push({
