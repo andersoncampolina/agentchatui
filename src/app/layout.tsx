@@ -11,6 +11,9 @@ export const metadata: Metadata = {
   title: 'Agent UI',
   description:
     'Your unified access to workflows, redefining human-AI interactions',
+  icons: {
+    icon: '/robot.svg',
+  },
 };
 
 export default function RootLayout({

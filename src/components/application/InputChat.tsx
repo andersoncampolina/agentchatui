@@ -86,7 +86,7 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
           model: model,
           prompt: message,
           webhookId: 'conversation',
-          conversationId: conversationId.toString(),
+          conversationId: (conversationId + 51).toString(),
         }),
       });
 
