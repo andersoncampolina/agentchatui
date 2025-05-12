@@ -26,12 +26,14 @@ interface InputChatProps {
   model?: string;
 }
 
-export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
+export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
   const [userInput, setUserInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[] | null>(null);
   const [image, setImage] = useState<any | null>(null);
-  const [conversationId, setConversationId] = useState(123);
+  const [conversationId, setConversationId] = useState(
+    process.env.ENENVIRONMENT == 'production' ? 200 : 1000
+  );
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -85,8 +87,11 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
         body: JSON.stringify({
           model: model,
           prompt: message,
-          webhookId: 'conversation',
-          conversationId: (conversationId + 51).toString(),
+          webhookId:
+            process.env.ENVIRONMENT === 'production'
+              ? 'conversation'
+              : 'conversation-teste',
+          conversationId: conversationId.toString(),
         }),
       });
 
@@ -95,7 +100,6 @@ export function InputChat({ model = 'gpt-4.1' }: InputChatProps) {
       }
 
       const data = await response.json();
-      console.log('DATA: ', data);
 
       if (data.b64_json) setImage(data.b64_json);
 
