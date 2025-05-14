@@ -5,6 +5,7 @@ import { useRef, useState, useEffect } from 'react';
 import { PulseLoader } from 'react-spinners';
 import { Tooltip } from '../common/Tooltip';
 import { FaMicrophone } from 'react-icons/fa';
+import { toast } from 'sonner';
 
 interface MicrophoneButtonProps {
   onAudioRecorded: (audio: string) => void;
@@ -32,6 +33,13 @@ export function MicrophoneButton({
 
   // Toggle recording state
   const toggleRecording = async () => {
+    if (disabled) {
+      toast.error(
+        "Microphone is currently disabled. Please wait until it's available to use."
+      );
+      return;
+    }
+
     if (isRecording) {
       stopRecording();
     } else {
@@ -51,6 +59,12 @@ export function MicrophoneButton({
     } catch (error) {
       console.error('Permission denied or error accessing microphone:', error);
       setPermissionDenied(true);
+
+      // Show toast notification
+      toast.error(
+        'Microphone access denied. Please check your browser settings to enable microphone access.'
+      );
+
       return false;
     }
   };
@@ -115,10 +129,14 @@ export function MicrophoneButton({
       console.error('Error starting recording:', error);
       setPermissionDenied(true);
 
-      // For iOS, show an alert to guide the user
+      // Show toast notification instead of alert
       if (isIOS()) {
-        alert(
-          'Please allow microphone access in your browser settings to use this feature. For iOS devices, go to Settings > Safari > Microphone and enable it for this website.'
+        toast.error(
+          'Please allow microphone access in your browser settings. For iOS devices, go to Settings > Safari > Microphone and enable it for this website.'
+        );
+      } else {
+        toast.error(
+          'Microphone access denied. Please check your browser settings to enable microphone access.'
         );
       }
     }
@@ -155,7 +173,7 @@ export function MicrophoneButton({
         className="rounded-full cursor-pointer font-extrabold bg-[var(--primary-color)] backdrop-blur h-10 w-10 sm:h-12 sm:w-12 text-xl sm:text-2xl flex-shrink-0"
         onClick={toggleRecording}
         type="button"
-        disabled={disabled || permissionDenied}
+        disabled={disabled}
       >
         {isRecording ? (
           <PulseLoader
