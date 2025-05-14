@@ -83,11 +83,12 @@ export function MicrophoneButton({
       console.error('Error starting recording:', error);
 
       // Show toast notification when microphone access is denied
-      toast.error('Microphone access is required', {
-        description:
-          'Please enable microphone access in your browser settings to use this feature.',
-        duration: 5000,
-      });
+      toast.error(
+        'Microphone access is required. Please enable it in your browser settings and try again.',
+        {
+          duration: 6000,
+        }
+      );
     }
   };
 
