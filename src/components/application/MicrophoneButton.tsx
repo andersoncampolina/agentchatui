@@ -21,13 +21,12 @@ export function MicrophoneButton({
   const audioChunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
 
-  // Check if running on iOS Safari
-  const isIOSSafari = () => {
+  // Check if running on iOS
+  const isIOS = () => {
     const ua = navigator.userAgent;
     return (
       /iPad|iPhone|iPod/.test(ua) &&
-      !(window as Window & { MSStream?: unknown }).MSStream &&
-      /Safari/.test(ua)
+      !(window as Window & { MSStream?: unknown }).MSStream
     );
   };
 
@@ -40,18 +39,15 @@ export function MicrophoneButton({
     }
   };
 
-  // Request permission explicitly (helps with iOS Safari)
+  // Request permission explicitly (helps with iOS)
   const requestMicrophonePermission = async () => {
     try {
-      // This will trigger the permission dialog on iOS Safari
-      await navigator.mediaDevices
-        .getUserMedia({ audio: true })
-        .then((stream) => {
-          // Stop the stream immediately, we just needed the permission
-          stream.getTracks().forEach((track) => track.stop());
-          setPermissionDenied(false);
-          return true;
-        });
+      // This will trigger the permission dialog
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Stop the stream immediately, we just needed the permission
+      stream.getTracks().forEach((track) => track.stop());
+      setPermissionDenied(false);
+      return true;
     } catch (error) {
       console.error('Permission denied or error accessing microphone:', error);
       setPermissionDenied(true);
@@ -62,11 +58,9 @@ export function MicrophoneButton({
   // Start recording
   const startRecording = async () => {
     try {
-      // For iOS Safari, explicitly request permission first
-      if (isIOSSafari()) {
-        const hasPermission = await requestMicrophonePermission();
-        if (!hasPermission) return;
-      }
+      // Always explicitly request permission first
+      const hasPermission = await requestMicrophonePermission();
+      if (!hasPermission) return;
 
       // Reset audio chunks
       audioChunksRef.current = [];
@@ -121,10 +115,10 @@ export function MicrophoneButton({
       console.error('Error starting recording:', error);
       setPermissionDenied(true);
 
-      // For iOS Safari, show an alert to guide the user
-      if (isIOSSafari()) {
+      // For iOS, show an alert to guide the user
+      if (isIOS()) {
         alert(
-          'Please allow microphone access in your browser settings to use this feature. Go to Settings > Safari > Microphone and enable it for this website.'
+          'Please allow microphone access in your browser settings to use this feature. For iOS devices, go to Settings > Safari > Microphone and enable it for this website.'
         );
       }
     }
