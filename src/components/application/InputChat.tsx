@@ -8,6 +8,7 @@ import { useState, KeyboardEvent, useEffect, useRef } from 'react';
 import FormatMarkdown from '../common/FormatMarkDown';
 import { PulseLoader } from 'react-spinners';
 import { Tooltip } from '../common/Tooltip';
+import { MicrophoneButton } from './MicrophoneButton';
 
 interface Message {
   lc: number;
@@ -145,6 +146,92 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
     }
   };
 
+  // Handle audio recording from microphone button
+  const handleAudioRecorded = async (audioBase64: string) => {
+    setIsLoading(true);
+
+    // Add a message indicating audio was sent
+    setMessages([
+      ...(messages || []),
+      {
+        lc: 1,
+        type: 'constructor',
+        id: ['langchain_core', 'messages', 'HumanMessage'],
+        kwargs: {
+          content: '[Audio message]',
+          additional_kwargs: {},
+          response_metadata: {},
+        },
+      },
+    ]);
+
+    try {
+      const response = await fetch('/api/n8nWebhook', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: model,
+          audioBase64,
+          webhookId:
+            process.env.ENVIRONMENT === 'production'
+              ? 'conversation'
+              : 'conversation-teste',
+          conversationId: conversationId.toString(),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.b64_json) setImage(data.b64_json);
+
+      // Check if data is an array and has messages property
+      if (Array.isArray(data) && data.length > 0 && data[0]?.messages) {
+        setMessages(data[0].messages);
+      } else if (data.messages) {
+        // If messages are directly on the data object
+        setMessages(data.messages);
+      } else {
+        // Create a fallback message if no messages are found
+        const fallbackMessage: Message = {
+          lc: 1,
+          type: 'constructor',
+          id: ['langchain_core', 'messages', 'AIMessage'],
+          kwargs: {
+            content:
+              'Received response but no messages were found in the data.',
+            additional_kwargs: {},
+            response_metadata: {},
+          },
+        };
+        setMessages([fallbackMessage]);
+      }
+    } catch (error: unknown) {
+      console.error('Failed to send audio message:', error);
+      // Create an error message in the same format as the messages
+      const errorMessage: Message = {
+        lc: 1,
+        type: 'constructor',
+        id: ['langchain_core', 'messages', 'AIMessage'],
+        kwargs: {
+          content: `Error: ${
+            error instanceof Error ? error.message : 'Unknown error occurred'
+          }`,
+          additional_kwargs: {},
+          response_metadata: {},
+        },
+      };
+      setMessages([errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Handle Enter key press to submit the message
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -220,6 +307,10 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
             onKeyDown={handleKeyDown}
             className="bg-white/60 backdrop-blur rounded-md"
             placeholder="Ask anything..."
+          />
+          <MicrophoneButton
+            onAudioRecorded={handleAudioRecorded}
+            disabled={isLoading}
           />
           <Tooltip text="Send message">
             <Button
