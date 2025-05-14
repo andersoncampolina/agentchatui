@@ -22,13 +22,52 @@ export function MicrophoneButton({
   const audioChunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
 
-  // Check if running on iOS
-  const isIOS = () => {
-    const ua = navigator.userAgent;
-    return (
-      /iPad|iPhone|iPod/.test(ua) &&
+  // Detect browser type and provide specific instructions
+  const getBrowserInstructions = () => {
+    const userAgent = navigator.userAgent;
+
+    // iOS detection (Safari on iOS)
+    if (
+      /iPad|iPhone|iPod/.test(userAgent) &&
       !(window as Window & { MSStream?: unknown }).MSStream
-    );
+    ) {
+      return "iOS Safari: \n1. Go to Settings \n2. Scroll down and tap on Safari \n3. Scroll down to 'Settings for Websites' \n4. Tap on Microphone \n5. Select 'Allow' for this website";
+    }
+
+    // Chrome
+    if (
+      userAgent.indexOf('Chrome') !== -1 &&
+      userAgent.indexOf('Edg') === -1 &&
+      userAgent.indexOf('OPR') === -1
+    ) {
+      return "Chrome: \n1. Click the lock/info icon in the address bar \n2. Select 'Site settings' \n3. Find Microphone in the permissions list \n4. Change to 'Allow'";
+    }
+
+    // Firefox
+    if (userAgent.indexOf('Firefox') !== -1) {
+      return "Firefox: \n1. Click the lock/info icon in the address bar \n2. Click 'Connection secure' \n3. Click 'More Information' \n4. Go to 'Permissions' tab \n5. Find 'Use the Microphone' and select 'Allow'";
+    }
+
+    // Edge
+    if (userAgent.indexOf('Edg') !== -1) {
+      return "Edge: \n1. Click the lock/info icon in the address bar \n2. Click 'Site permissions' \n3. Find Microphone and change to 'Allow'";
+    }
+
+    // Safari (desktop)
+    if (
+      userAgent.indexOf('Safari') !== -1 &&
+      userAgent.indexOf('Chrome') === -1
+    ) {
+      return "Safari: \n1. Click Safari in the menu bar \n2. Select 'Settings for This Website' \n3. Find Microphone and select 'Allow'";
+    }
+
+    // Opera
+    if (userAgent.indexOf('OPR') !== -1) {
+      return "Opera: \n1. Click the lock/info icon in the address bar \n2. Go to 'Site settings' \n3. Find Microphone and change to 'Allow'";
+    }
+
+    // Generic instructions for other browsers
+    return "Browser: \n1. Check the address bar for permission icons (usually a lock icon) \n2. Access site permissions/settings \n3. Find microphone permissions and set to 'Allow'";
   };
 
   // Toggle recording state
@@ -60,9 +99,10 @@ export function MicrophoneButton({
       console.error('Permission denied or error accessing microphone:', error);
       setPermissionDenied(true);
 
-      // Show toast notification
+      // Show toast notification with browser-specific instructions
       toast.error(
-        'Microphone access denied. Please check your browser settings to enable microphone access.'
+        `Microphone access denied. Please enable it in your browser settings: \n\n${getBrowserInstructions()}`,
+        { duration: 8000 }
       );
 
       return false;
@@ -129,16 +169,11 @@ export function MicrophoneButton({
       console.error('Error starting recording:', error);
       setPermissionDenied(true);
 
-      // Show toast notification instead of alert
-      if (isIOS()) {
-        toast.error(
-          'Please allow microphone access in your browser settings. For iOS devices, go to Settings > Safari > Microphone and enable it for this website.'
-        );
-      } else {
-        toast.error(
-          'Microphone access denied. Please check your browser settings to enable microphone access.'
-        );
-      }
+      // Show toast notification with browser-specific instructions
+      toast.error(
+        `Microphone access denied. Please enable it in your browser: \n\n${getBrowserInstructions()}`,
+        { duration: 8000 }
+      );
     }
   };
 
