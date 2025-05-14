@@ -17,6 +17,7 @@ export function MicrophoneButton({
 }: MicrophoneButtonProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [permissionError, setPermissionError] = useState<string | null>(null);
+  const [showPermissionPrompt, setShowPermissionPrompt] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
@@ -29,6 +30,9 @@ export function MicrophoneButton({
       return;
     }
 
+    // Check if running on iOS
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
     // On iOS, we need to request permission when a user gesture happens
     // This empty function helps ensure the permission dialog appears
     const checkPermission = async () => {
@@ -39,9 +43,14 @@ export function MicrophoneButton({
         // Immediately stop the stream after permission check
         stream.getTracks().forEach((track) => track.stop());
         setPermissionError(null);
+        setShowPermissionPrompt(false);
       } catch (err) {
         console.error('Permission check failed:', err);
         setPermissionError('Microphone access denied');
+        // If on iOS and permission denied, we'll show our custom prompt
+        if (isIOS) {
+          setShowPermissionPrompt(true);
+        }
       }
     };
 
@@ -51,8 +60,39 @@ export function MicrophoneButton({
     }
   }, []);
 
+  // Handle iOS permission request
+  const requestIOSPermission = () => {
+    setShowPermissionPrompt(false);
+
+    // Show browser alert to guide the user
+    alert(
+      'To use the microphone, please allow access when prompted. If no prompt appears, please go to Settings > Safari > Microphone and enable access for this site.'
+    );
+
+    // Try to request permission again
+    navigator.mediaDevices
+      .getUserMedia({ audio: true })
+      .then((stream) => {
+        // Stop the stream immediately after permission is granted
+        stream.getTracks().forEach((track) => track.stop());
+        setPermissionError(null);
+      })
+      .catch((err) => {
+        console.error('Permission request failed:', err);
+        setPermissionError(
+          'Microphone access denied. Please check your browser settings.'
+        );
+      });
+  };
+
   // Toggle recording state
   const toggleRecording = async () => {
+    // If on iOS and we have a permission error, show our custom prompt
+    if (/iPhone|iPad|iPod/i.test(navigator.userAgent) && permissionError) {
+      setShowPermissionPrompt(true);
+      return;
+    }
+
     if (isRecording) {
       stopRecording();
     } else {
@@ -124,6 +164,11 @@ export function MicrophoneButton({
       setPermissionError(
         'Could not access microphone. Please check permissions.'
       );
+
+      // If on iOS, show our custom prompt
+      if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+        setShowPermissionPrompt(true);
+      }
     }
   };
 
@@ -156,36 +201,68 @@ export function MicrophoneButton({
     }
   };
 
+  // iOS Permission Prompt Component
+  const IOSPermissionPrompt = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded-lg max-w-sm mx-4">
+        <h3 className="text-lg font-bold mb-2">Microphone Access Required</h3>
+        <p className="mb-4">
+          This app needs access to your microphone to record audio. Please allow
+          access when prompted.
+        </p>
+        <div className="flex justify-end space-x-2">
+          <Button
+            onClick={() => setShowPermissionPrompt(false)}
+            className="bg-gray-200 text-black hover:bg-gray-300"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={requestIOSPermission}
+            className="bg-[var(--primary-color)] text-white"
+          >
+            Allow Access
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <Tooltip
-      text={
-        permissionError
-          ? permissionError
-          : isRecording
-          ? 'Click to stop recording'
-          : 'Click to start recording'
-      }
-    >
-      <Button
-        className="rounded-full cursor-pointer font-extrabold bg-[var(--primary-color)] backdrop-blur h-10 w-10 sm:h-12 sm:w-12 text-xl sm:text-2xl flex-shrink-0"
-        onClick={toggleRecording}
-        type="button"
-        disabled={disabled || !!permissionError}
+    <>
+      {showPermissionPrompt && <IOSPermissionPrompt />}
+      <Tooltip
+        text={
+          permissionError
+            ? permissionError
+            : isRecording
+            ? 'Click to stop recording'
+            : 'Click to start recording'
+        }
       >
-        {isRecording ? (
-          <PulseLoader
-            size={6}
-            color="white"
-            style={{
-              alignItems: 'center',
-              display: 'flex',
-              backgroundColor: 'var(--primary-color)',
-            }}
-          />
-        ) : (
-          <FaMicrophone color="white" className="bg-transparent" />
-        )}
-      </Button>
-    </Tooltip>
+        <Button
+          className="rounded-full cursor-pointer font-extrabold bg-[var(--primary-color)] backdrop-blur h-10 w-10 sm:h-12 sm:w-12 text-xl sm:text-2xl flex-shrink-0"
+          onClick={toggleRecording}
+          type="button"
+          disabled={disabled || (!!permissionError && !showPermissionPrompt)}
+        >
+          {isRecording ? (
+            <PulseLoader
+              size={6}
+              color="white"
+              style={{
+                alignItems: 'center',
+                display: 'flex',
+                backgroundColor: 'var(--primary-color)',
+              }}
+            />
+          ) : (
+            <FaMicrophone color="white" className="bg-transparent" />
+          )}
+        </Button>
+      </Tooltip>
+    </>
   );
 }
+
+export default MicrophoneButton;
