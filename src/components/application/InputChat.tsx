@@ -4,11 +4,19 @@
 
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { useState, KeyboardEvent, useEffect, useRef } from 'react';
+import {
+  useState,
+  KeyboardEvent,
+  useEffect,
+  useRef,
+  DragEvent,
+  ClipboardEvent,
+} from 'react';
 import FormatMarkdown from '../common/FormatMarkDown';
 import { PulseLoader } from 'react-spinners';
 import { Tooltip } from '../common/Tooltip';
 import { MicrophoneButton } from './MicrophoneButton';
+import { X } from 'lucide-react';
 
 interface Message {
   lc: number;
@@ -32,11 +40,13 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[] | null>(null);
   const [image, setImage] = useState<any | null>(null);
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [conversationId, setConversationId] = useState(
     process.env.ENENVIRONMENT == 'production' ? 200 : 1000
   );
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -53,8 +63,56 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
     }
   }, [isLoading]);
 
+  // Handle drag events
+  const handleDragOver = (e: DragEvent<HTMLTextAreaElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: DragEvent<HTMLTextAreaElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      if (file.type.match('image.*')) {
+        handleImageUpload(file);
+      }
+    }
+  };
+
+  // Handle paste event
+  const handlePaste = (e: ClipboardEvent<HTMLTextAreaElement>) => {
+    const items = e.clipboardData.items;
+
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        const file = items[i].getAsFile();
+        if (file) {
+          handleImageUpload(file);
+          break;
+        }
+      }
+    }
+  };
+
+  // Convert file to base64
+  const handleImageUpload = (file: File) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      setUploadedImage(base64String);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Clear uploaded image
+  const clearUploadedImage = () => {
+    setUploadedImage(null);
+  };
+
   const handleSubmit = async (userInput: string) => {
-    if (!userInput.trim()) return;
+    if (!userInput.trim() && !uploadedImage) return;
 
     // Create a copy of userInput for the API call
     const message = userInput;
@@ -70,7 +128,7 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
         type: 'constructor',
         id: ['langchain_core', 'messages', 'HumanMessage'],
         kwargs: {
-          content: message,
+          content: uploadedImage ? `${message} [Image attached]` : message,
           additional_kwargs: {},
           response_metadata: {},
         },
@@ -78,6 +136,17 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
     ]);
 
     setIsLoading(true);
+
+    // Extract base64 data without the data URL prefix
+    let imageData = null;
+    if (uploadedImage) {
+      const base64Match = uploadedImage.match(
+        /^data:image\/(png|jpeg|jpg|gif);base64,(.*)$/
+      );
+      if (base64Match) {
+        imageData = base64Match[2];
+      }
+    }
 
     try {
       const response = await fetch('/api/n8nWebhook', {
@@ -88,6 +157,7 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
         body: JSON.stringify({
           model: model,
           prompt: message,
+          image: imageData,
           webhookId:
             process.env.ENVIRONMENT === 'production'
               ? 'conversation'
@@ -143,6 +213,7 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
       setMessages([errorMessage]);
     } finally {
       setIsLoading(false);
+      setUploadedImage(null); // Clear the uploaded image after sending
     }
   };
 
@@ -250,6 +321,7 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
     setMessages(null);
     setImage(null);
     setUserInput('');
+    setUploadedImage(null);
     setConversationId((prevId) => prevId + 1);
   };
 
@@ -288,52 +360,84 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
         )}
       </div>
       <div className="fixed bottom-0 left-0 right-0 pb-2 sm:pb-5 flex items-center w-full justify-center bg-transparent">
-        <div className="flex items-center w-full max-w-[95%] sm:max-w-3xl px-2 sm:px-4 gap-2 sm:gap-3 bg-transparent">
-          <Tooltip text="Start a new conversation">
-            <Button
-              className="pt-1 rounded-full cursor-pointer font-extrabold bg-[var(--primary-color)] backdrop-blur h-10 w-10 sm:h-12 sm:w-12 text-xl sm:text-2xl flex-shrink-0"
-              onClick={handleClearConversation}
-              type="button"
+        <div className="flex flex-col items-center w-full max-w-[95%] sm:max-w-3xl px-2 sm:px-4 gap-2 sm:gap-3 bg-transparent">
+          {uploadedImage && (
+            <div className="relative bg-white/60 backdrop-blur rounded-md p-1 self-start">
+              <img
+                src={uploadedImage}
+                alt="Upload preview"
+                className="h-[70px] w-auto object-contain rounded"
+              />
+              <button
+                onClick={clearUploadedImage}
+                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md"
+                aria-label="Remove image"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          )}
+          <div className="flex items-center w-full gap-2 sm:gap-3">
+            <Tooltip text="Start a new conversation">
+              <Button
+                className="pt-1 rounded-full cursor-pointer font-extrabold bg-[var(--primary-color)] backdrop-blur h-10 w-10 sm:h-12 sm:w-12 text-xl sm:text-2xl flex-shrink-0"
+                onClick={handleClearConversation}
+                type="button"
+                disabled={isLoading}
+                title="Clear conversation"
+              >
+                +
+              </Button>
+            </Tooltip>
+            <Textarea
+              ref={inputRef}
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              onPaste={handlePaste}
+              className="bg-white/60 backdrop-blur rounded-md"
+              placeholder="Ask anything... (drag & drop or paste images)"
+            />
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  handleImageUpload(e.target.files[0]);
+                }
+              }}
+            />
+            <MicrophoneButton
+              onAudioRecorded={handleAudioRecorded}
               disabled={isLoading}
-              title="Clear conversation"
-            >
-              +
-            </Button>
-          </Tooltip>
-          <Textarea
-            ref={inputRef}
-            value={userInput}
-            onChange={(e) => setUserInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            className="bg-white/60 backdrop-blur rounded-md"
-            placeholder="Ask anything..."
-          />
-          <MicrophoneButton
-            onAudioRecorded={handleAudioRecorded}
-            disabled={isLoading}
-          />
-          <Tooltip text="Send message">
-            <Button
-              className="rounded-full cursor-pointer font-extrabold bg-[var(--primary-color)] backdrop-blur h-10 w-10 sm:h-12 sm:w-12 text-xl sm:text-2xl flex-shrink-0"
-              onClick={() => handleSubmit(userInput)}
-              type="submit"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <PulseLoader
-                  size={6}
-                  color="white"
-                  style={{
-                    alignItems: 'center',
-                    display: 'flex',
-                    backgroundColor: 'var(--primary-color)',
-                  }}
-                />
-              ) : (
-                '↑'
-              )}
-            </Button>
-          </Tooltip>
+            />
+            <Tooltip text="Send message">
+              <Button
+                className="rounded-full cursor-pointer font-extrabold bg-[var(--primary-color)] backdrop-blur h-10 w-10 sm:h-12 sm:w-12 text-xl sm:text-2xl flex-shrink-0"
+                onClick={() => handleSubmit(userInput)}
+                type="submit"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <PulseLoader
+                    size={6}
+                    color="white"
+                    style={{
+                      alignItems: 'center',
+                      display: 'flex',
+                      backgroundColor: 'var(--primary-color)',
+                    }}
+                  />
+                ) : (
+                  '↑'
+                )}
+              </Button>
+            </Tooltip>
+          </div>
         </div>
       </div>
     </div>
