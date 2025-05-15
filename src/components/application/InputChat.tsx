@@ -39,7 +39,7 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
   const [userInput, setUserInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[] | null>(null);
-  const [image, setImage] = useState<any | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [conversationId, setConversationId] = useState(
     process.env.ENENVIRONMENT == 'production' ? 200 : 1000
@@ -54,7 +54,7 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, image]);
+  }, [messages, imageUrl]);
 
   // Keep focus on input field
   useEffect(() => {
@@ -172,29 +172,88 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
 
       const data = await response.json();
 
-      if (data.b64_json) setImage(data.b64_json);
+      // Process the response data
+      let responseMessages = null;
+      let responseImageUrl = null;
 
       // Check if data is an array and has messages property
-      if (Array.isArray(data) && data.length > 0 && data[0]?.messages) {
-        setMessages(data[0].messages);
-      } else if (data.messages) {
-        // If messages are directly on the data object
-        setMessages(data.messages);
+      if (Array.isArray(data) && data.length > 0) {
+        if (data[0]?.image) {
+          responseImageUrl = data[0].image;
+        }
+        if (data[0]?.messages) {
+          responseMessages = data[0].messages;
+        } else if (data[0]?.image) {
+          // Create a default message if only image is returned in an array
+          responseMessages = [
+            {
+              lc: 1,
+              type: 'constructor',
+              id: ['langchain_core', 'messages', 'AIMessage'],
+              kwargs: {
+                content: 'Here is the image you requested:',
+                additional_kwargs: {},
+                response_metadata: {
+                  image_url: data[0].image,
+                },
+              },
+            },
+          ];
+        }
       } else {
-        // Create a fallback message if no messages are found
-        const fallbackMessage: Message = {
-          lc: 1,
-          type: 'constructor',
-          id: ['langchain_core', 'messages', 'AIMessage'],
-          kwargs: {
-            content:
-              'Received response but no messages were found in the data.',
-            additional_kwargs: {},
-            response_metadata: {},
-          },
-        };
-        setMessages([fallbackMessage]);
+        if (data.image) {
+          responseImageUrl = data.image;
+        }
+        if (data.messages) {
+          responseMessages = data.messages;
+        } else {
+          // Create a default message if only image is returned
+          responseMessages = [
+            {
+              lc: 1,
+              type: 'constructor',
+              id: ['langchain_core', 'messages', 'AIMessage'],
+              kwargs: {
+                content: 'Here is the image you requested:',
+                additional_kwargs: {},
+                response_metadata: {
+                  image_url: data.image,
+                },
+              },
+            },
+          ];
+        }
       }
+
+      // If we have an image URL, add it to the AI message's response_metadata
+      if (responseImageUrl && responseMessages) {
+        // Find the last AI message to add the image to
+        const lastAiMessageIndex = responseMessages
+          .map((msg: Message, idx: number) => ({ msg, idx }))
+          .filter(
+            ({ msg }: { msg: Message }) => !msg.id.includes('HumanMessage')
+          )
+          .pop()?.idx;
+
+        if (lastAiMessageIndex !== undefined) {
+          // Add the image URL to the response_metadata of the AI message
+          responseMessages[lastAiMessageIndex] = {
+            ...responseMessages[lastAiMessageIndex],
+            kwargs: {
+              ...responseMessages[lastAiMessageIndex].kwargs,
+              response_metadata: {
+                ...responseMessages[lastAiMessageIndex].kwargs
+                  .response_metadata,
+                image_url: responseImageUrl,
+              },
+            },
+          };
+        }
+      }
+
+      // Update state with processed data
+      setImageUrl(responseImageUrl);
+      setMessages(responseMessages);
     } catch (error: unknown) {
       console.error('Failed to send message:', error);
       // Create an error message in the same format as the messages
@@ -259,29 +318,103 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
 
       const data = await response.json();
 
-      if (data.b64_json) setImage(data.b64_json);
+      // Process the response data
+      let responseMessages = null;
+      let responseImageUrl = null;
 
       // Check if data is an array and has messages property
-      if (Array.isArray(data) && data.length > 0 && data[0]?.messages) {
-        setMessages(data[0].messages);
-      } else if (data.messages) {
-        // If messages are directly on the data object
-        setMessages(data.messages);
+      if (Array.isArray(data) && data.length > 0) {
+        if (data[0]?.image) {
+          responseImageUrl = data[0].image;
+        }
+        if (data[0]?.messages) {
+          responseMessages = data[0].messages;
+        } else if (data[0]?.image) {
+          // Create a default message if only image is returned in an array
+          responseMessages = [
+            {
+              lc: 1,
+              type: 'constructor',
+              id: ['langchain_core', 'messages', 'AIMessage'],
+              kwargs: {
+                content: 'Here is the image you requested:',
+                additional_kwargs: {},
+                response_metadata: {
+                  image_url: data[0].image,
+                },
+              },
+            },
+          ];
+        }
       } else {
-        // Create a fallback message if no messages are found
-        const fallbackMessage: Message = {
-          lc: 1,
-          type: 'constructor',
-          id: ['langchain_core', 'messages', 'AIMessage'],
-          kwargs: {
-            content:
-              'Received response but no messages were found in the data.',
-            additional_kwargs: {},
-            response_metadata: {},
-          },
-        };
-        setMessages([fallbackMessage]);
+        if (data.image) {
+          responseImageUrl = data.image;
+        }
+        if (data.messages) {
+          responseMessages = data.messages;
+        } else if (data.image) {
+          // Create a default message if only image is returned
+          responseMessages = [
+            {
+              lc: 1,
+              type: 'constructor',
+              id: ['langchain_core', 'messages', 'AIMessage'],
+              kwargs: {
+                content: 'Here is the image you requested:',
+                additional_kwargs: {},
+                response_metadata: {
+                  image_url: data.image,
+                },
+              },
+            },
+          ];
+        } else {
+          // Create a fallback message if no messages are found
+          responseMessages = [
+            {
+              lc: 1,
+              type: 'constructor',
+              id: ['langchain_core', 'messages', 'AIMessage'],
+              kwargs: {
+                content:
+                  'Received response but no messages were found in the data.',
+                additional_kwargs: {},
+                response_metadata: {},
+              },
+            },
+          ];
+        }
       }
+
+      // If we have an image URL, add it to the AI message's response_metadata
+      if (responseImageUrl && responseMessages) {
+        // Find the last AI message to add the image to
+        const lastAiMessageIndex = responseMessages
+          .map((msg: Message, idx: number) => ({ msg, idx }))
+          .filter(
+            ({ msg }: { msg: Message }) => !msg.id.includes('HumanMessage')
+          )
+          .pop()?.idx;
+
+        if (lastAiMessageIndex !== undefined) {
+          // Add the image URL to the response_metadata of the AI message
+          responseMessages[lastAiMessageIndex] = {
+            ...responseMessages[lastAiMessageIndex],
+            kwargs: {
+              ...responseMessages[lastAiMessageIndex].kwargs,
+              response_metadata: {
+                ...responseMessages[lastAiMessageIndex].kwargs
+                  .response_metadata,
+                image_url: responseImageUrl,
+              },
+            },
+          };
+        }
+      }
+
+      // Update state with processed data
+      setImageUrl(responseImageUrl);
+      setMessages(responseMessages);
     } catch (error: unknown) {
       console.error('Failed to send audio message:', error);
       // Create an error message in the same format as the messages
@@ -319,7 +452,7 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
   // Function to clear conversation and increment conversationId
   const handleClearConversation = () => {
     setMessages(null);
-    setImage(null);
+    setImageUrl(null);
     setUserInput('');
     setUploadedImage(null);
     setConversationId((prevId) => prevId + 1);
@@ -328,15 +461,6 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
   return (
     <div className="flex flex-col w-full max-w-4xl gap-4 items-center px-2 sm:px-4">
       <div className="w-full rounded-md overflow-x-hidden overflow-y-auto pb-20 p-2">
-        {image && (
-          <div className="flex flex-col gap-6 pb-10 w-full max-w-full">
-            <img
-              src={`data:image/png;base64,${image}`}
-              alt="Generated Image"
-              className="w-full h-auto rounded-md"
-            />
-          </div>
-        )}
         {messages && (
           <div className="flex flex-col gap-4 pb-20 w-full max-w-full">
             {messages.map((message, index) => (
@@ -349,6 +473,16 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
                 } overflow-hidden break-words w-fit`}
               >
                 <div className="bg-transparent w-full max-w-full overflow-hidden">
+                  {!isHumanMessage(message) &&
+                    message.kwargs.response_metadata?.image_url && (
+                      <div className="mb-4">
+                        <img
+                          src={message.kwargs.response_metadata.image_url}
+                          alt="Generated Image"
+                          className="w-full h-auto rounded-md"
+                        />
+                      </div>
+                    )}
                   <FormatMarkdown isHumanMessage={isHumanMessage(message)}>
                     {message.kwargs.content}
                   </FormatMarkdown>
