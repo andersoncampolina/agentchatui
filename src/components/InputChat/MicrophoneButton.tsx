@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { useRef, useState } from 'react';
 import { PulseLoader } from 'react-spinners';
-import { Tooltip } from '../common/Tooltip';
+import { Tooltip } from './Tooltip';
 import { FaMicrophone } from 'react-icons/fa';
 import { toast } from 'sonner';
 

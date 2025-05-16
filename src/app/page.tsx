@@ -1,4 +1,4 @@
-import { InputChat } from '@/components/application/InputChat';
+import { InputChat } from '@/components/InputChat';
 import { MdSupportAgent } from 'react-icons/md';
 import { RiRobot2Line } from 'react-icons/ri';
 

@@ -12,9 +12,9 @@ import {
   DragEvent,
   ClipboardEvent,
 } from 'react';
-import FormatMarkdown from '../common/FormatMarkDown';
+import FormatMarkdown from './FormatMarkDown';
 import { PulseLoader } from 'react-spinners';
-import { Tooltip } from '../common/Tooltip';
+import { Tooltip } from './Tooltip';
 import { MicrophoneButton } from './MicrophoneButton';
 import { X } from 'lucide-react';
 
