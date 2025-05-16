@@ -42,7 +42,7 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [conversationId, setConversationId] = useState(
-    process.env.ENENVIRONMENT == 'production' ? 200 : 1000
+    process.env.ENENVIRONMENT === 'production' ? 200 : 1000
   );
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -56,12 +56,48 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
     scrollToBottom();
   }, [messages, imageUrl]);
 
-  // Keep focus on input field
   useEffect(() => {
     if (!isLoading) {
       inputRef.current?.focus();
     }
   }, [isLoading]);
+
+  // Create a human message object
+  const createHumanMessage = (content: string): Message => ({
+    lc: 1,
+    type: 'constructor',
+    id: ['langchain_core', 'messages', 'HumanMessage'],
+    kwargs: {
+      content,
+      additional_kwargs: {},
+      response_metadata: {},
+    },
+  });
+
+  // Create an AI message object
+  const createAIMessage = (content: string, imageUrl?: string): Message => ({
+    lc: 1,
+    type: 'constructor',
+    id: ['langchain_core', 'messages', 'AIMessage'],
+    kwargs: {
+      content,
+      additional_kwargs: {},
+      response_metadata: imageUrl ? { image_url: imageUrl } : {},
+    },
+  });
+
+  // Handle file operations (image upload)
+  const handleImageUpload = (file: File) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setUploadedImage(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const clearUploadedImage = () => {
+    setUploadedImage(null);
+  };
 
   // Handle drag events
   const handleDragOver = (e: DragEvent<HTMLTextAreaElement>) => {
@@ -73,11 +109,9 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
     e.preventDefault();
     e.stopPropagation();
 
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
-      if (file.type.match('image.*')) {
-        handleImageUpload(file);
-      }
+    const file = e.dataTransfer.files?.[0];
+    if (file?.type.match('image.*')) {
+      handleImageUpload(file);
     }
   };
 
@@ -96,45 +130,110 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
     }
   };
 
-  // Convert file to base64
-  const handleImageUpload = (file: File) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64String = reader.result as string;
-      setUploadedImage(base64String);
-    };
-    reader.readAsDataURL(file);
+  // Process API response data
+  const processApiResponse = async (data: any) => {
+    let responseMessages = null;
+    let responseImageUrl = null;
+
+    // Handle array response format
+    if (Array.isArray(data) && data.length > 0) {
+      responseImageUrl = data[0]?.image || null;
+      responseMessages = data[0]?.messages || null;
+    } else {
+      // Handle object response format
+      responseImageUrl = data.image || null;
+      responseMessages = data.messages || null;
+    }
+
+    // If no messages but we have an image, create a default message
+    if (!responseMessages && responseImageUrl) {
+      responseMessages = [
+        createAIMessage('Here is the image you requested:', responseImageUrl),
+      ];
+    } else if (!responseMessages) {
+      responseMessages = [
+        createAIMessage(
+          'Received response but no messages were found in the data.'
+        ),
+      ];
+    }
+
+    // If we have messages and an image, add the image URL to the last AI message
+    if (responseImageUrl && responseMessages) {
+      const aiMessages = responseMessages
+        .map((msg: Message, idx: number) => ({ msg, idx }))
+        .filter(
+          ({ msg }: { msg: Message }) => !msg.id.includes('HumanMessage')
+        );
+
+      if (aiMessages.length > 0) {
+        const lastAiMessageIndex = aiMessages.pop()?.idx;
+        if (lastAiMessageIndex !== undefined) {
+          responseMessages[lastAiMessageIndex] = {
+            ...responseMessages[lastAiMessageIndex],
+            kwargs: {
+              ...responseMessages[lastAiMessageIndex].kwargs,
+              response_metadata: {
+                ...responseMessages[lastAiMessageIndex].kwargs
+                  .response_metadata,
+                image_url: responseImageUrl,
+              },
+            },
+          };
+        }
+      }
+    }
+
+    return { responseMessages, responseImageUrl };
   };
 
-  // Clear uploaded image
-  const clearUploadedImage = () => {
-    setUploadedImage(null);
+  // Send request to API and handle response
+  const sendApiRequest = async (payload: any) => {
+    try {
+      const response = await fetch('/api/n8nWebhook', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const { responseMessages, responseImageUrl } = await processApiResponse(
+        data
+      );
+
+      setImageUrl(responseImageUrl);
+      setMessages(responseMessages);
+    } catch (error: unknown) {
+      console.error('Failed to send message:', error);
+      const errorMessage = createAIMessage(
+        `Error: ${
+          error instanceof Error ? error.message : 'Unknown error occurred'
+        }`
+      );
+      setMessages([errorMessage]);
+    } finally {
+      setIsLoading(false);
+      setUploadedImage(null);
+    }
   };
 
+  // Handle submitting a text message
   const handleSubmit = async (userInput: string) => {
     if (!userInput.trim() && !uploadedImage) return;
 
-    // Create a copy of userInput for the API call
-    const message = userInput;
-
-    // Clear input immediately after submission
     setUserInput('');
-
-    // adiciona dentro de messages o userInput
     setMessages([
       ...(messages || []),
-      {
-        lc: 1,
-        type: 'constructor',
-        id: ['langchain_core', 'messages', 'HumanMessage'],
-        kwargs: {
-          content: uploadedImage ? `${message} [Image attached]` : message,
-          additional_kwargs: {},
-          response_metadata: {},
-        },
-      },
+      createHumanMessage(
+        uploadedImage ? `${userInput} [Image attached]` : userInput
+      ),
     ]);
-
     setIsLoading(true);
 
     // Extract base64 data without the data URL prefix
@@ -143,300 +242,38 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
       const base64Match = uploadedImage.match(
         /^data:image\/(png|jpeg|jpg|gif);base64,(.*)$/
       );
-      if (base64Match) {
-        imageData = base64Match[2];
-      }
+      imageData = base64Match ? base64Match[2] : null;
     }
 
-    try {
-      const response = await fetch('/api/n8nWebhook', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: model,
-          prompt: message,
-          image: imageData,
-          webhookId:
-            process.env.ENVIRONMENT === 'production'
-              ? 'conversation'
-              : 'conversation-teste',
-          conversationId: conversationId.toString(),
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      // Process the response data
-      let responseMessages = null;
-      let responseImageUrl = null;
-
-      // Check if data is an array and has messages property
-      if (Array.isArray(data) && data.length > 0) {
-        if (data[0]?.image) {
-          responseImageUrl = data[0].image;
-        }
-        if (data[0]?.messages) {
-          responseMessages = data[0].messages;
-        } else if (data[0]?.image) {
-          // Create a default message if only image is returned in an array
-          responseMessages = [
-            {
-              lc: 1,
-              type: 'constructor',
-              id: ['langchain_core', 'messages', 'AIMessage'],
-              kwargs: {
-                content: 'Here is the image you requested:',
-                additional_kwargs: {},
-                response_metadata: {
-                  image_url: data[0].image,
-                },
-              },
-            },
-          ];
-        }
-      } else {
-        if (data.image) {
-          responseImageUrl = data.image;
-        }
-        if (data.messages) {
-          responseMessages = data.messages;
-        } else {
-          // Create a default message if only image is returned
-          responseMessages = [
-            {
-              lc: 1,
-              type: 'constructor',
-              id: ['langchain_core', 'messages', 'AIMessage'],
-              kwargs: {
-                content: 'Here is the image you requested:',
-                additional_kwargs: {},
-                response_metadata: {
-                  image_url: data.image,
-                },
-              },
-            },
-          ];
-        }
-      }
-
-      // If we have an image URL, add it to the AI message's response_metadata
-      if (responseImageUrl && responseMessages) {
-        // Find the last AI message to add the image to
-        const lastAiMessageIndex = responseMessages
-          .map((msg: Message, idx: number) => ({ msg, idx }))
-          .filter(
-            ({ msg }: { msg: Message }) => !msg.id.includes('HumanMessage')
-          )
-          .pop()?.idx;
-
-        if (lastAiMessageIndex !== undefined) {
-          // Add the image URL to the response_metadata of the AI message
-          responseMessages[lastAiMessageIndex] = {
-            ...responseMessages[lastAiMessageIndex],
-            kwargs: {
-              ...responseMessages[lastAiMessageIndex].kwargs,
-              response_metadata: {
-                ...responseMessages[lastAiMessageIndex].kwargs
-                  .response_metadata,
-                image_url: responseImageUrl,
-              },
-            },
-          };
-        }
-      }
-
-      // Update state with processed data
-      setImageUrl(responseImageUrl);
-      setMessages(responseMessages);
-    } catch (error: unknown) {
-      console.error('Failed to send message:', error);
-      // Create an error message in the same format as the messages
-      const errorMessage: Message = {
-        lc: 1,
-        type: 'constructor',
-        id: ['langchain_core', 'messages', 'AIMessage'],
-        kwargs: {
-          content: `Error: ${
-            error instanceof Error ? error.message : 'Unknown error occurred'
-          }`,
-          additional_kwargs: {},
-          response_metadata: {},
-        },
-      };
-      setMessages([errorMessage]);
-    } finally {
-      setIsLoading(false);
-      setUploadedImage(null); // Clear the uploaded image after sending
-    }
+    await sendApiRequest({
+      model,
+      prompt: userInput,
+      image: imageData,
+      webhookId:
+        process.env.ENVIRONMENT === 'production'
+          ? 'conversation'
+          : 'conversation-teste',
+      conversationId: conversationId.toString(),
+    });
   };
 
   // Handle audio recording from microphone button
   const handleAudioRecorded = async (audioBase64: string) => {
     setIsLoading(true);
+    setMessages([...(messages || []), createHumanMessage('[Audio message]')]);
 
-    // Add a message indicating audio was sent
-    setMessages([
-      ...(messages || []),
-      {
-        lc: 1,
-        type: 'constructor',
-        id: ['langchain_core', 'messages', 'HumanMessage'],
-        kwargs: {
-          content: '[Audio message]',
-          additional_kwargs: {},
-          response_metadata: {},
-        },
-      },
-    ]);
-
-    try {
-      const response = await fetch('/api/n8nWebhook', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: model,
-          audioBase64,
-          webhookId:
-            process.env.ENVIRONMENT === 'production'
-              ? 'conversation'
-              : 'conversation-teste',
-          conversationId: conversationId.toString(),
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      // Process the response data
-      let responseMessages = null;
-      let responseImageUrl = null;
-
-      // Check if data is an array and has messages property
-      if (Array.isArray(data) && data.length > 0) {
-        if (data[0]?.image) {
-          responseImageUrl = data[0].image;
-        }
-        if (data[0]?.messages) {
-          responseMessages = data[0].messages;
-        } else if (data[0]?.image) {
-          // Create a default message if only image is returned in an array
-          responseMessages = [
-            {
-              lc: 1,
-              type: 'constructor',
-              id: ['langchain_core', 'messages', 'AIMessage'],
-              kwargs: {
-                content: 'Here is the image you requested:',
-                additional_kwargs: {},
-                response_metadata: {
-                  image_url: data[0].image,
-                },
-              },
-            },
-          ];
-        }
-      } else {
-        if (data.image) {
-          responseImageUrl = data.image;
-        }
-        if (data.messages) {
-          responseMessages = data.messages;
-        } else if (data.image) {
-          // Create a default message if only image is returned
-          responseMessages = [
-            {
-              lc: 1,
-              type: 'constructor',
-              id: ['langchain_core', 'messages', 'AIMessage'],
-              kwargs: {
-                content: 'Here is the image you requested:',
-                additional_kwargs: {},
-                response_metadata: {
-                  image_url: data.image,
-                },
-              },
-            },
-          ];
-        } else {
-          // Create a fallback message if no messages are found
-          responseMessages = [
-            {
-              lc: 1,
-              type: 'constructor',
-              id: ['langchain_core', 'messages', 'AIMessage'],
-              kwargs: {
-                content:
-                  'Received response but no messages were found in the data.',
-                additional_kwargs: {},
-                response_metadata: {},
-              },
-            },
-          ];
-        }
-      }
-
-      // If we have an image URL, add it to the AI message's response_metadata
-      if (responseImageUrl && responseMessages) {
-        // Find the last AI message to add the image to
-        const lastAiMessageIndex = responseMessages
-          .map((msg: Message, idx: number) => ({ msg, idx }))
-          .filter(
-            ({ msg }: { msg: Message }) => !msg.id.includes('HumanMessage')
-          )
-          .pop()?.idx;
-
-        if (lastAiMessageIndex !== undefined) {
-          // Add the image URL to the response_metadata of the AI message
-          responseMessages[lastAiMessageIndex] = {
-            ...responseMessages[lastAiMessageIndex],
-            kwargs: {
-              ...responseMessages[lastAiMessageIndex].kwargs,
-              response_metadata: {
-                ...responseMessages[lastAiMessageIndex].kwargs
-                  .response_metadata,
-                image_url: responseImageUrl,
-              },
-            },
-          };
-        }
-      }
-
-      // Update state with processed data
-      setImageUrl(responseImageUrl);
-      setMessages(responseMessages);
-    } catch (error: unknown) {
-      console.error('Failed to send audio message:', error);
-      // Create an error message in the same format as the messages
-      const errorMessage: Message = {
-        lc: 1,
-        type: 'constructor',
-        id: ['langchain_core', 'messages', 'AIMessage'],
-        kwargs: {
-          content: `Error: ${
-            error instanceof Error ? error.message : 'Unknown error occurred'
-          }`,
-          additional_kwargs: {},
-          response_metadata: {},
-        },
-      };
-      setMessages([errorMessage]);
-    } finally {
-      setIsLoading(false);
-    }
+    await sendApiRequest({
+      model,
+      audioBase64,
+      webhookId:
+        process.env.ENVIRONMENT === 'production'
+          ? 'conversation'
+          : 'conversation-teste',
+      conversationId: conversationId.toString(),
+    });
   };
 
-  // Handle Enter key press to submit the message
+  // Handle Enter key press to submit message
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -445,9 +282,8 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
   };
 
   // Helper function to determine message type
-  const isHumanMessage = (message: Message) => {
-    return message.id.includes('HumanMessage');
-  };
+  const isHumanMessage = (message: Message) =>
+    message.id.includes('HumanMessage');
 
   // Function to clear conversation and increment conversationId
   const handleClearConversation = () => {
@@ -455,7 +291,7 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
     setImageUrl(null);
     setUserInput('');
     setUploadedImage(null);
-    setConversationId((prevId) => prevId + 1);
+    setConversationId((prev) => prev + 1);
   };
 
   return (
@@ -540,7 +376,7 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
               accept="image/*"
               style={{ display: 'none' }}
               onChange={(e) => {
-                if (e.target.files && e.target.files[0]) {
+                if (e.target.files?.[0]) {
                   handleImageUpload(e.target.files[0]);
                 }
               }}
