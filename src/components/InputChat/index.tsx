@@ -12,42 +12,36 @@ import {
   DragEvent,
   ClipboardEvent,
 } from 'react';
-import FormatMarkdown from './FormatMarkDown';
+import FormatMarkdown from './ui/FormatMarkDown';
 import { PulseLoader } from 'react-spinners';
-import { Tooltip } from './Tooltip';
-import { MicrophoneButton } from './MicrophoneButton';
+import { Tooltip } from './ui/Tooltip';
+import { MicrophoneButton } from './ui/MicrophoneButton';
 import { X } from 'lucide-react';
-
-interface Message {
-  lc: number;
-  type: string;
-  id: string[];
-  kwargs: {
-    content: string;
-    tool_calls?: any[];
-    invalid_tool_calls?: any[];
-    additional_kwargs: any;
-    response_metadata: any;
-  };
-}
-
-interface InputChatProps {
-  model?: string;
-}
+import { Message, InputChatProps } from './types';
+import {
+  createHumanMessage,
+  createAIMessage,
+  processApiResponse,
+  handleImageUpload as handleImageUploadUtil,
+} from './utils';
 
 export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
+  // State management
   const [userInput, setUserInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[] | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [conversationId, setConversationId] = useState(
-    process.env.ENENVIRONMENT === 'production' ? 200 : 1000
+    process.env.ENVIRONMENT === 'production' ? 200 : 1000
   );
+
+  // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Auto-scroll and focus effects
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -62,44 +56,16 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
     }
   }, [isLoading]);
 
-  // Create a human message object
-  const createHumanMessage = (content: string): Message => ({
-    lc: 1,
-    type: 'constructor',
-    id: ['langchain_core', 'messages', 'HumanMessage'],
-    kwargs: {
-      content,
-      additional_kwargs: {},
-      response_metadata: {},
-    },
-  });
-
-  // Create an AI message object
-  const createAIMessage = (content: string, imageUrl?: string): Message => ({
-    lc: 1,
-    type: 'constructor',
-    id: ['langchain_core', 'messages', 'AIMessage'],
-    kwargs: {
-      content,
-      additional_kwargs: {},
-      response_metadata: imageUrl ? { image_url: imageUrl } : {},
-    },
-  });
-
-  // Handle file operations (image upload)
+  // Image handling
   const handleImageUpload = (file: File) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setUploadedImage(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    handleImageUploadUtil(file, setUploadedImage);
   };
 
   const clearUploadedImage = () => {
     setUploadedImage(null);
   };
 
-  // Handle drag events
+  // Drag and drop handlers
   const handleDragOver = (e: DragEvent<HTMLTextAreaElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -115,7 +81,7 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
     }
   };
 
-  // Handle paste event
+  // Clipboard paste handler
   const handlePaste = (e: ClipboardEvent<HTMLTextAreaElement>) => {
     const items = e.clipboardData.items;
 
@@ -130,71 +96,12 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
     }
   };
 
-  // Process API response data
-  const processApiResponse = async (data: any) => {
-    let responseMessages = null;
-    let responseImageUrl = null;
-
-    // Handle array response format
-    if (Array.isArray(data) && data.length > 0) {
-      responseImageUrl = data[0]?.image || null;
-      responseMessages = data[0]?.messages || null;
-    } else {
-      // Handle object response format
-      responseImageUrl = data.image || null;
-      responseMessages = data.messages || null;
-    }
-
-    // If no messages but we have an image, create a default message
-    if (!responseMessages && responseImageUrl) {
-      responseMessages = [
-        createAIMessage('Here is the image you requested:', responseImageUrl),
-      ];
-    } else if (!responseMessages) {
-      responseMessages = [
-        createAIMessage(
-          'Received response but no messages were found in the data.'
-        ),
-      ];
-    }
-
-    // If we have messages and an image, add the image URL to the last AI message
-    if (responseImageUrl && responseMessages) {
-      const aiMessages = responseMessages
-        .map((msg: Message, idx: number) => ({ msg, idx }))
-        .filter(
-          ({ msg }: { msg: Message }) => !msg.id.includes('HumanMessage')
-        );
-
-      if (aiMessages.length > 0) {
-        const lastAiMessageIndex = aiMessages.pop()?.idx;
-        if (lastAiMessageIndex !== undefined) {
-          responseMessages[lastAiMessageIndex] = {
-            ...responseMessages[lastAiMessageIndex],
-            kwargs: {
-              ...responseMessages[lastAiMessageIndex].kwargs,
-              response_metadata: {
-                ...responseMessages[lastAiMessageIndex].kwargs
-                  .response_metadata,
-                image_url: responseImageUrl,
-              },
-            },
-          };
-        }
-      }
-    }
-
-    return { responseMessages, responseImageUrl };
-  };
-
-  // Send request to API and handle response
+  // API communication
   const sendApiRequest = async (payload: any) => {
     try {
       const response = await fetch('/api/n8nWebhook', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
@@ -210,7 +117,6 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
       setImageUrl(responseImageUrl);
       setMessages(responseMessages);
     } catch (error: unknown) {
-      console.error('Failed to send message:', error);
       const errorMessage = createAIMessage(
         `Error: ${
           error instanceof Error ? error.message : 'Unknown error occurred'
@@ -223,7 +129,7 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
     }
   };
 
-  // Handle submitting a text message
+  // Message submission handler
   const handleSubmit = async (userInput: string) => {
     if (!userInput.trim() && !uploadedImage) return;
 
@@ -257,7 +163,7 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
     });
   };
 
-  // Handle audio recording from microphone button
+  // Audio recording handler
   const handleAudioRecorded = async (audioBase64: string) => {
     setIsLoading(true);
     setMessages([...(messages || []), createHumanMessage('[Audio message]')]);
@@ -273,7 +179,7 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
     });
   };
 
-  // Handle Enter key press to submit message
+  // Key press handler
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -281,11 +187,11 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
     }
   };
 
-  // Helper function to determine message type
+  // Message type helper
   const isHumanMessage = (message: Message) =>
     message.id.includes('HumanMessage');
 
-  // Function to clear conversation and increment conversationId
+  // Conversation reset handler
   const handleClearConversation = () => {
     setMessages(null);
     setImageUrl(null);

@@ -21,7 +21,7 @@ export function MicrophoneButton({
   const audioChunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
 
-  // Toggle recording state
+  // Recording control
   const toggleRecording = async () => {
     if (isRecording) {
       stopRecording();
@@ -30,45 +30,39 @@ export function MicrophoneButton({
     }
   };
 
-  // Start recording
+  // Initialize recording process
   const startRecording = async () => {
     try {
-      // Reset audio chunks
       audioChunksRef.current = [];
-
-      // Request microphone access
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
 
-      // Create media recorder
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
 
-      // Set up event handlers
+      // Collect audio data
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           audioChunksRef.current.push(event.data);
         }
       };
 
-      // Handle recording stop
+      // Process recording when stopped
       mediaRecorder.onstop = () => {
-        // Combine audio chunks into a single blob
         const audioBlob = new Blob(audioChunksRef.current, {
           type: 'audio/webm',
         });
 
-        // Convert to base64
+        // Convert to base64 for transmission
         const reader = new FileReader();
         reader.readAsDataURL(audioBlob);
         reader.onloadend = () => {
           const base64Audio = reader.result as string;
-          // Remove the data:audio/webm;base64, prefix
           const base64Data = base64Audio.split(',')[1];
           onAudioRecorded(base64Data);
         };
 
-        // Stop all tracks in the stream
+        // Release media resources
         if (streamRef.current) {
           const tracks = streamRef.current.getTracks();
           tracks.forEach((track) => track.stop());
@@ -76,13 +70,9 @@ export function MicrophoneButton({
         }
       };
 
-      // Start recording and request data every 1 second
       mediaRecorder.start(1000);
       setIsRecording(true);
     } catch (error) {
-      console.error('Error starting recording:', error);
-
-      // Show toast notification when microphone access is denied
       toast.error(
         'Microphone access is required. Please enable it in your browser settings and try again.',
         {
@@ -92,7 +82,7 @@ export function MicrophoneButton({
     }
   };
 
-  // Stop recording
+  // End recording process
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();

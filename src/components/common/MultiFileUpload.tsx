@@ -4,7 +4,7 @@ import React, { useState, useEffect, useId } from 'react';
 import { PulseLoader } from 'react-spinners';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Tooltip } from '../InputChat/Tooltip';
+import { Tooltip } from '../InputChat/ui/Tooltip';
 import { Button } from '../ui/button';
 
 type MultiFileUploadProps = {

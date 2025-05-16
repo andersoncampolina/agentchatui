@@ -8,6 +8,7 @@
 
    - Reusable UI primitives
    - Use class-variance-authority for variants
+   - Leverages Radix UI primitives
 
 2. **Common Components** (`src/components/common/`)
 
@@ -15,8 +16,9 @@
    - Examples: FormatMarkdown, FadeInText
 
 3. **Application Components** (`src/components/application/`)
+
    - Feature-specific components
-   - Examples: InputChat
+   - Examples: InputChat (now in dedicated directory)
 
 ### Key Components
 
@@ -25,17 +27,20 @@
 - Main chat interface
 - Handles user input and API requests
 - Displays responses (text/images)
+- Manages loading states
 
 #### FormatMarkdown
 
 - Renders markdown with syntax highlighting
-- Uses react-markdown
+- Uses react-markdown and remark-gfm
 - Applies consistent styling
+- Handles code blocks with responsive design
 
 #### FadeInText
 
 - Animated text display
 - Uses React useEffect and useState
+- Creates typing animation effect
 
 ## API Architecture
 
@@ -47,8 +52,15 @@
    - Authenticates requests
    - Processes responses
 
-2. **OpenAI Routes** (in progress)
-   - Direct OpenAI integration
+2. **OpenAI Routes**
+
+   - Direct OpenAI API integration
+   - Handles model communication
+   - Processes responses for UI display
+
+3. **Realtime Routes** (planned)
+   - Will handle real-time communication
+   - Support for streaming responses
 
 ### Request/Response Pattern
 
@@ -73,9 +85,19 @@ if (data.b64_json) {
 
 - React useState for component state
 - Future: Context API for global state
+- Potential use of React Server Components
 
 ## Styling Approach
 
-- Tailwind CSS utility classes
+- Tailwind CSS v4 utility classes
 - Custom color variables for theming
 - Responsive design with tailwind modifiers
+- Class composition with clsx and tailwind-merge
+- Future dark/light mode with next-themes
+
+## Animation Patterns
+
+- FadeInText for text animation
+- CSS transitions for UI elements
+- Controlled loading states with PulseLoader
+- Responsive animations for different devices
