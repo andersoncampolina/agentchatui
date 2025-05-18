@@ -8,7 +8,8 @@ export async function POST(request: Request) {
 
     const username = process.env.N8N_USERNAME;
     const password = process.env.N8N_PASSWORD;
-    const isProduction: boolean = process.env.ENVIRONMENT === 'production';
+    const isProduction: boolean =
+      process.env.ENVIRONMENT === 'production' ? true : false;
 
     // Get webhook ID from FormData
     const webhookId = (formData.get('webhookId') as string) || 'conversation';
