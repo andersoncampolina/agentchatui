@@ -248,11 +248,27 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
         }
       }
 
-      const response = await fetch('/api/n8nWebhook', {
-        method: 'POST',
-        // No Content-Type header - browser sets it automatically with boundary
-        body: formData,
-      });
+      // Create an AbortController for the fetch request with a 4.5 minute timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 270000); // 4.5 minutes
+
+      let response;
+      try {
+        response = await fetch('/api/n8nWebhook', {
+          method: 'POST',
+          // No Content-Type header - browser sets it automatically with boundary
+          body: formData,
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeoutId);
+      } catch (error: unknown) {
+        clearTimeout(timeoutId);
+        if (error instanceof Error && error.name === 'AbortError') {
+          throw new Error('Request timed out after 4.5 minutes');
+        }
+        throw error;
+      }
 
       if (!response.ok) {
         throw new Error(`Error: ${response.status}`);

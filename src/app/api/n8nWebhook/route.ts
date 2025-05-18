@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 
+// Extend the Next.js API timeout to 5 minutes
+export const maxDuration = 300; // 5 minutes in seconds
+
 export async function POST(request: Request) {
   try {
     // Parse the incoming request as FormData
@@ -36,22 +39,38 @@ export async function POST(request: Request) {
       }
     });
 
-    // Send the request to n8n
-    const response = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: {
-        Authorization: `Basic ${basicAuth}`,
-      },
-      body: n8nFormData,
-      cache: 'no-store',
-    });
+    // Create an AbortController with a longer timeout (4 minutes)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 240000); // 4 minutes in milliseconds
 
-    if (!response.ok) {
-      throw new Error(`n8n responded with status ${response.status}`);
+    try {
+      // Send the request to n8n with the AbortController signal
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          Authorization: `Basic ${basicAuth}`,
+        },
+        body: n8nFormData,
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId); // Clear the timeout if request completes
+
+      if (!response.ok) {
+        throw new Error(`n8n responded with status ${response.status}`);
+      }
+
+      const responseData = await response.json();
+      return NextResponse.json(responseData);
+    } catch (fetchError: unknown) {
+      if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+        throw new Error('Request to n8n timed out after 4 minutes');
+      }
+      throw fetchError;
+    } finally {
+      clearTimeout(timeoutId); // Ensure timeout is cleared
     }
-
-    const responseData = await response.json();
-    return NextResponse.json(responseData);
   } catch (error: unknown) {
     const errorMessage =
       error instanceof Error ? error.message : 'Unknown error occurred';
