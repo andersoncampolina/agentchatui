@@ -265,7 +265,7 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
     setIsLoading(true);
 
     // For FormData, we'll keep the full image data if it exists
-    let imageData = uploadedImage;
+    const imageData = uploadedImage;
 
     await sendApiRequest({
       model,

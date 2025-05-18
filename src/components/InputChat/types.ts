@@ -4,10 +4,13 @@ export interface Message {
   id: string[];
   kwargs: {
     content: string;
-    tool_calls?: any[];
-    invalid_tool_calls?: any[];
-    additional_kwargs: any;
-    response_metadata: any;
+    tool_calls?: Record<string, unknown>[];
+    invalid_tool_calls?: Record<string, unknown>[];
+    additional_kwargs: Record<string, unknown>;
+    response_metadata: {
+      image_url?: string;
+      [key: string]: unknown;
+    };
   };
 }
 

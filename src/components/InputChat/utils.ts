@@ -27,17 +27,22 @@ export const createAIMessage = (
 });
 
 // API response processing
-export const processApiResponse = async (data: any) => {
-  let responseMessages = null;
-  let responseImageUrl = null;
+export const processApiResponse = async (
+  data: Record<string, unknown> | Array<Record<string, unknown>>
+) => {
+  let responseMessages: Message[] | null = null;
+  let responseImageUrl: string | null = null;
 
   // Handle different response formats
   if (Array.isArray(data) && data.length > 0) {
-    responseImageUrl = data[0]?.image || null;
-    responseMessages = data[0]?.messages || null;
+    const firstItem = data[0] as Record<string, unknown>;
+    responseImageUrl = (firstItem.image as string) || null;
+    responseMessages = (firstItem.messages as Message[]) || null;
   } else {
-    responseImageUrl = data.image || null;
-    responseMessages = data.messages || null;
+    responseImageUrl =
+      ((data as Record<string, unknown>).image as string) || null;
+    responseMessages =
+      ((data as Record<string, unknown>).messages as Message[]) || null;
   }
 
   // Create default messages if none provided
@@ -57,7 +62,7 @@ export const processApiResponse = async (data: any) => {
   if (responseImageUrl && responseMessages) {
     const aiMessages = responseMessages
       .map((msg: Message, idx: number) => ({ msg, idx }))
-      .filter(({ msg }: { msg: Message }) => !msg.id.includes('HumanMessage'));
+      .filter(({ msg }) => !msg.id.includes('HumanMessage'));
 
     if (aiMessages.length > 0) {
       const lastAiMessageIndex = aiMessages.pop()?.idx;

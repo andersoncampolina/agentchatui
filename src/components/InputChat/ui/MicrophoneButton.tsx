@@ -72,7 +72,7 @@ export function MicrophoneButton({
 
       mediaRecorder.start(1000);
       setIsRecording(true);
-    } catch (error) {
+    } catch {
       toast.error(
         'Microphone access is required. Please enable it in your browser settings and try again.',
         {

@@ -57,10 +57,12 @@ export async function POST(request: Request) {
 
     const responseData = await response.json();
     return NextResponse.json(responseData);
-  } catch (error: any) {
-    console.error(`Error in n8nWebhook route: ${error.message}`);
+  } catch (error: unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error occurred';
+    console.error(`Error in n8nWebhook route: ${errorMessage}`);
     return NextResponse.json(
-      { error: `Failed to process request: ${error.message}` },
+      { error: `Failed to process request: ${errorMessage}` },
       { status: 500 }
     );
   }
