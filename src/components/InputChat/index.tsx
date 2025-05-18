@@ -21,7 +21,6 @@ import { Message, InputChatProps } from './types';
 import {
   createHumanMessage,
   createAIMessage,
-  processApiResponse,
   handleImageUpload as handleImageUploadUtil,
 } from './utils';
 
@@ -96,13 +95,136 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
     }
   };
 
+  // Process API response
+  const processApiResponse = async (data: any) => {
+    // If data is already in the array format
+    if (Array.isArray(data)) {
+      // Extract image URLs from message content
+      let lastImageUrl = null;
+
+      // Process messages to add image URLs to response_metadata
+      const processedMessages = data.map((msg: any) => {
+        // Check for image URLs in content
+        if (
+          msg.type === 'constructor' &&
+          msg.id[2] === 'AIMessage' &&
+          msg.kwargs.content
+        ) {
+          const content = msg.kwargs.content;
+
+          // Check for markdown image syntax or markdown links with image URLs
+          const markdownImageMatch = content.match(
+            /!\[.*?\]\((https?:\/\/.*?\.(?:png|jpg|jpeg|gif))\)/i
+          );
+          const markdownLinkMatch = content.match(
+            /\[(.*?)\]\((https?:\/\/.*?\.(?:png|jpg|jpeg|gif))\)/i
+          );
+          const plainUrlMatch = content.match(
+            /(https?:\/\/\S+\.(?:png|jpg|jpeg|gif))\b/i
+          );
+
+          let imageUrl = null;
+          let matchedText = null;
+
+          if (markdownImageMatch) {
+            imageUrl = markdownImageMatch[1]; // Group 1 contains the URL
+            matchedText = markdownImageMatch[0]; // Full match
+          } else if (markdownLinkMatch) {
+            imageUrl = markdownLinkMatch[2]; // Group 2 contains the URL in a markdown link
+            matchedText = markdownLinkMatch[0]; // Full match
+          } else if (plainUrlMatch) {
+            imageUrl = plainUrlMatch[1]; // Group 1 contains the URL
+            matchedText = plainUrlMatch[0]; // Full match
+          }
+
+          // Also check for any URL inside parentheses that might be an image
+          if (!imageUrl) {
+            const parenthesesMatch = content.match(
+              /\((https?:\/\/.*?\.(?:png|jpg|jpeg|gif))\)/i
+            );
+            if (parenthesesMatch) {
+              imageUrl = parenthesesMatch[1];
+              matchedText = parenthesesMatch[0];
+            }
+          }
+
+          if (imageUrl) {
+            lastImageUrl = imageUrl;
+
+            // Add image_url to response_metadata if not already present
+            if (!msg.kwargs.response_metadata) {
+              msg.kwargs.response_metadata = {};
+            }
+
+            msg.kwargs.response_metadata.image_url = imageUrl;
+
+            // Remove the URL from content to avoid duplicating it
+            if (matchedText) {
+              msg.kwargs.content = content.replace(matchedText, '').trim();
+            }
+          }
+        }
+
+        return msg;
+      });
+
+      return {
+        responseMessages: processedMessages,
+        responseImageUrl: lastImageUrl,
+      };
+    }
+
+    // Handle other response formats if needed
+    return { responseMessages: [], responseImageUrl: null };
+  };
+
   // API communication
   const sendApiRequest = async (payload: any) => {
     try {
+      // Create FormData object
+      const formData = new FormData();
+
+      // Process each payload item appropriately for FormData
+      for (const [key, value] of Object.entries(payload)) {
+        // Handle image data - convert base64 to blob if needed
+        if (key === 'image' && value) {
+          // If it's a data URL, convert to Blob
+          if (typeof value === 'string' && value.startsWith('data:image')) {
+            const response = await fetch(value);
+            const blob = await response.blob();
+            formData.append('image', blob, 'image.jpg');
+          } else {
+            formData.append(key, value as string);
+          }
+        }
+        // Handle audio data - convert base64 to blob if needed
+        else if (key === 'audioBase64' && value) {
+          if (typeof value === 'string' && value.startsWith('data:audio')) {
+            const response = await fetch(value);
+            const blob = await response.blob();
+            formData.append('audioFile', blob, 'audio.mp3');
+          } else {
+            // Standard base64 without data URL prefix
+            const byteString = atob(value as string);
+            const arrayBuffer = new ArrayBuffer(byteString.length);
+            const int8Array = new Uint8Array(arrayBuffer);
+            for (let i = 0; i < byteString.length; i++) {
+              int8Array[i] = byteString.charCodeAt(i);
+            }
+            const blob = new Blob([int8Array], { type: 'audio/mpeg' });
+            formData.append('audioFile', blob, 'audio.mp3');
+          }
+        }
+        // Handle all other data normally
+        else {
+          formData.append(key, value as string);
+        }
+      }
+
       const response = await fetch('/api/n8nWebhook', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        // No Content-Type header - browser sets it automatically with boundary
+        body: formData,
       });
 
       if (!response.ok) {
@@ -142,14 +264,8 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
     ]);
     setIsLoading(true);
 
-    // Extract base64 data without the data URL prefix
-    let imageData = null;
-    if (uploadedImage) {
-      const base64Match = uploadedImage.match(
-        /^data:image\/(png|jpeg|jpg|gif);base64,(.*)$/
-      );
-      imageData = base64Match ? base64Match[2] : null;
-    }
+    // For FormData, we'll keep the full image data if it exists
+    let imageData = uploadedImage;
 
     await sendApiRequest({
       model,
@@ -188,8 +304,7 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
   };
 
   // Message type helper
-  const isHumanMessage = (message: Message) =>
-    message.id.includes('HumanMessage');
+  const isHumanMessage = (message: Message) => message.id[2] === 'HumanMessage';
 
   // Conversation reset handler
   const handleClearConversation = () => {

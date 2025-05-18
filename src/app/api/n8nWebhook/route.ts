@@ -1,70 +1,67 @@
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
-  const body = await request.json();
-  console.log('BODY: ', body);
-  const username = process.env.N8N_USERNAME;
-  const password = process.env.N8N_PASSWORD;
+  try {
+    // Parse the incoming request as FormData
+    const formData = await request.formData();
+    console.log('Received FormData request');
 
-  const isProduction: boolean = process.env.ENVIRONMENT === 'production';
+    const username = process.env.N8N_USERNAME;
+    const password = process.env.N8N_PASSWORD;
+    const isProduction: boolean = process.env.ENVIRONMENT === 'production';
 
-  let webhookUrl;
+    // Get webhook ID from FormData
+    const webhookId = formData.get('webhookId') as string;
 
-  if (isProduction) {
-    webhookUrl = `https://n8n.renthub.com.br/webhook/${body.webhookId}`;
-  } else {
-    webhookUrl = `https://n8n.renthub.com.br/webhook-test/${body.webhookId}`;
-  }
+    // Validate essential fields
+    if (!webhookId) {
+      throw new Error('webhookId is required');
+    }
 
-  // Create basic authentication header
-  const basicAuth = Buffer.from(`${username}:${password}`).toString('base64');
+    // Determine webhook URL
+    let webhookUrl;
+    if (isProduction) {
+      webhookUrl = `https://n8n.renthub.com.br/webhook/${webhookId}`;
+    } else {
+      webhookUrl = `https://n8n.renthub.com.br/webhook-test/${webhookId}`;
+    }
 
-  // Create a JSON payload
-  const jsonPayload: Record<string, unknown> = {
-    model: body.model,
-    prompt: body.prompt,
-    webhookId: body.webhookId,
-    conversationId: body.conversationId,
-  };
+    // Create basic authentication header
+    const basicAuth = Buffer.from(`${username}:${password}`).toString('base64');
 
-  // Process all properties in the body object
-  for (const [key, value] of Object.entries(body)) {
-    // Handle image fields specially - convert to base64
-    if (key === 'image' && typeof value === 'string') {
-      try {
-        const imageResponse = await fetch(value);
-        const imageBuffer = await imageResponse.arrayBuffer();
-        const base64Image = Buffer.from(imageBuffer).toString('base64');
+    // Forward the FormData directly to n8n
+    // We need to create a new FormData to avoid sending the webhookId
+    const n8nFormData = new FormData();
 
-        // Get the mime type from the response
-        const contentType =
-          imageResponse.headers.get('content-type') || 'image/jpeg';
-
-        // Format as data URL
-        jsonPayload[key] = `data:${contentType};base64,${base64Image}`;
-      } catch (error) {
-        console.error(`Failed to fetch and encode image: ${error}`);
+    // Copy all entries except webhookId
+    formData.forEach((value, key) => {
+      if (key !== 'webhookId') {
+        n8nFormData.append(key, value);
       }
+    });
+
+    // Send the request to n8n
+    console.log(`Sending FormData request to: ${webhookUrl}`);
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: {
+        Authorization: `Basic ${basicAuth}`,
+      },
+      body: n8nFormData,
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      throw new Error(`n8n responded with status ${response.status}`);
     }
-    // Handle all other fields normally
-    else if (value !== undefined && value !== null) {
-      jsonPayload[key] = value;
-    }
+
+    const responseData = await response.json();
+    return NextResponse.json(responseData);
+  } catch (error: any) {
+    console.error(`Error in n8nWebhook route: ${error.message}`);
+    return NextResponse.json(
+      { error: `Failed to process request: ${error.message}` },
+      { status: 500 }
+    );
   }
-
-  // Send request with JSON body
-  const response = await fetch(webhookUrl, {
-    method: 'POST',
-    headers: {
-      Authorization: `Basic ${basicAuth}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(jsonPayload),
-    cache: 'no-store',
-  });
-
-  const responseData = await response.json();
-
-  // Return the response from the webhook as a JSON object
-  return NextResponse.json(responseData);
 }

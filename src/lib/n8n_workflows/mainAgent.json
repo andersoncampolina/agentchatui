@@ -2,32 +2,81 @@
   "nodes": [
     {
       "parameters": {
-        "httpMethod": "POST",
-        "path": "conversation",
-        "responseMode": "responseNode",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 2,
-      "position": [0, 0],
-      "id": "ad1e2945-efcb-434f-b2ec-4314667aaaa7",
-      "name": "Webhook",
-      "webhookId": "f4aa8d55-077a-4d30-902f-37b92d8117f8"
-    },
-    {
-      "parameters": {
         "promptType": "define",
-        "text": "={{ $json.body.prompt }}",
+        "text": "={{ $json.prompt }}",
         "options": {
           "systemMessage": "return the chat history memory on output"
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.9,
-      "position": [220, 0],
-      "id": "e81b3cf9-daae-43d2-9441-0194882c9b5c",
+      "position": [1060, 420],
+      "id": "9b8d6cf4-abeb-448a-b69e-4d443507b332",
       "name": "AI Agent",
       "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [2000, 420],
+      "id": "b1f39a55-6336-430f-9821-64d38529f863",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "simplifyOutput": false,
+        "options": {
+          "groupMessages": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [1420, 420],
+      "id": "91ed36aa-ffd5-4ab1-9ec1-88a22df29cbe",
+      "name": "Chat Memory Manager",
+      "alwaysOutputData": true,
+      "notesInFlow": true,
+      "notes": "Busca mensagens da memória para exibir no front para o usuário"
+    },
+    {
+      "parameters": {
+        "sseEndpoint": "https://n8n.renthub.com.br/mcp/google_calendar/sse"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1,
+      "position": [1460, 680],
+      "id": "6c4a4afb-36c0-47a9-b95c-a27e522d0249",
+      "name": "Google Calendar MCP"
+    },
+    {
+      "parameters": {
+        "sseEndpoint": "https://n8n.renthub.com.br/mcp/gmail/sse"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1,
+      "position": [1600, 680],
+      "id": "63ea89f6-b8d3-4968-be8b-799749e31825",
+      "name": "Gmail MCP"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "conversation-teste",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-380, 560],
+      "id": "6baecda6-1a0b-40a2-a7eb-5aad04a4c875",
+      "name": "Webhook",
+      "webhookId": "f4aa8d55-077a-4d30-902f-37b92d8117f8",
+      "notesInFlow": true,
+      "notes": "Recebe dados do front"
     },
     {
       "parameters": {
@@ -40,9 +89,9 @@
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
-      "position": [140, 260],
-      "id": "bfb61ca0-87f7-4484-afa4-ed3b576f6783",
-      "name": "OpenAI Chat Model",
+      "position": [1040, 680],
+      "id": "e356ed77-1933-4746-98a7-9f3c7be49710",
+      "name": "gpt-4o",
       "credentials": {
         "openAiApi": {
           "id": "tSJf73VJieWXzqGP",
@@ -52,68 +101,262 @@
     },
     {
       "parameters": {
-        "options": {}
-      },
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.2,
-      "position": [980, 100],
-      "id": "60551184-5ef2-4e5c-8624-f08902d23954",
-      "name": "Respond to Webhook"
-    },
-    {
-      "parameters": {
-        "simplifyOutput": false,
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.memoryManager",
-      "typeVersion": 1.1,
-      "position": [580, 100],
-      "id": "f4df76ff-5219-40af-8401-8cf4d5f74736",
-      "name": "Chat Memory Manager",
-      "alwaysOutputData": true
-    },
-    {
-      "parameters": {
         "sessionIdType": "customKey",
         "sessionKey": "={{ $('Webhook').item.json.body.conversationId }}",
         "contextWindowLength": 10
       },
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.3,
-      "position": [360, 300],
-      "id": "79e1fc1a-5840-4d96-8e18-8cd8f48a3906",
-      "name": "Simple Memory"
+      "position": [1180, 680],
+      "id": "882904d4-b638-42e6-a0a2-31b4335a38de",
+      "name": "chat-memory-gpt-4o"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "3756fab2-9375-499e-80c8-98bdcec6c623",
+              "leftValue": "={{ $json.body.audioBase64 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [340, 600],
+      "id": "554a8454-dcbc-4f2c-8672-44224706b2a6",
+      "name": "é áudio?"
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "body.audioBase64",
+        "options": {
+          "fileName": "audio.mp3",
+          "mimeType": "audio/mpeg"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [360, 460],
+      "id": "5e049884-03f7-4492-a129-5082b44a8fc1",
+      "name": "Converter b64 em arquivo"
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [560, 460],
+      "id": "b2f130f9-a8bf-4a44-9986-de7522db2b0b",
+      "name": "Transcreve o audio em texto",
+      "credentials": {
+        "openAiApi": {
+          "id": "tSJf73VJieWXzqGP",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e88c828d-a813-4950-8abe-6b4a6bc53744",
+              "name": "prompt",
+              "value": "={{ $json.text || $json.body.prompt }}",
+              "type": "string"
+            },
+            {
+              "id": "70247688-8d64-4787-9940-df656375e596",
+              "name": "image",
+              "value": "={{ $json.body.image }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [760, 620],
+      "id": "742091e7-1e73-411f-8180-e64d45a61996",
+      "name": "unifica campo",
+      "notesInFlow": true,
+      "notes": "muda nome do campo"
+    },
+    {
+      "parameters": {
+        "content": "# INPUT\n## Recebe o prompt e verifica se é áudio ou texto - Caso seja áudio converte em texto.",
+        "height": 480,
+        "width": 1340,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-420, 320],
+      "typeVersion": 1,
+      "id": "4630dd77-b4f9-4a1a-8645-560c846967af",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "# PROCESS\n## Execute workflows and access tools based on INPUT context",
+        "height": 560,
+        "width": 760
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [980, 280],
+      "id": "94626e66-9abc-4919-8acc-a3045aed571c",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "# OUTPUT\n## The ways to return the processed data",
+        "height": 360,
+        "width": 480,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [1820, 280],
+      "id": "c309b2ca-5ccf-474a-9505-fc86de9c4d47",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "description": "Call this tool when need to generate or edit image",
+        "workflowId": {
+          "__rl": true,
+          "value": "qYI4dAvwq6w9Ffon",
+          "mode": "list",
+          "cachedResultName": "Image Generation Workflow"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "prompt": "={{ $('unifica campo').item.json.prompt }}",
+            "image": "={{ $('unifica campo').item.json.image }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "prompt",
+              "displayName": "prompt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "image",
+              "displayName": "image",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [1320, 680],
+      "id": "9d66fc7a-1e07-4276-bd60-ec87619c53b9",
+      "name": "Image Generation/Edit Workflow"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4d780fd2-a971-407b-866b-69b333c30ad6",
+              "leftValue": "={{ $('Webhook').item.binary }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [-180, 560],
+      "id": "eb767634-30f2-4d83-a4ab-d748179502a3",
+      "name": "é binário?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "3ba651f2-d81a-4f57-a49a-c50c56178258",
+              "leftValue": "={{ $json.body.image }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [140, 600],
+      "id": "cfb82c17-d0f4-49e3-ab68-70eb8a5c13d7",
+      "name": "é imagem?"
     }
   ],
   "connections": {
-    "Webhook": {
-      "main": [
-        [
-          {
-            "node": "AI Agent",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "AI Agent": {
       "main": [
         [
           {
             "node": "Chat Memory Manager",
             "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "OpenAI Chat Model": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "AI Agent",
-            "type": "ai_languageModel",
             "index": 0
           }
         ]
@@ -133,7 +376,51 @@
         ]
       ]
     },
-    "Simple Memory": {
+    "Google Calendar MCP": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail MCP": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "é binário?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "gpt-4o": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "chat-memory-gpt-4o": {
       "ai_memory": [
         [
           {
@@ -144,6 +431,98 @@
           {
             "node": "Chat Memory Manager",
             "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "é áudio?": {
+      "main": [
+        [
+          {
+            "node": "Converter b64 em arquivo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "unifica campo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Converter b64 em arquivo": {
+      "main": [
+        [
+          {
+            "node": "Transcreve o audio em texto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcreve o audio em texto": {
+      "main": [
+        [
+          {
+            "node": "unifica campo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "unifica campo": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image Generation/Edit Workflow": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "é binário?": {
+      "main": [
+        [],
+        [
+          {
+            "node": "é imagem?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "é imagem?": {
+      "main": [
+        [
+          {
+            "node": "unifica campo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "é áudio?",
+            "type": "main",
             "index": 0
           }
         ]
