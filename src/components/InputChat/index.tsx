@@ -190,9 +190,36 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
         if (key === 'image' && value) {
           // If it's a data URL, convert to Blob
           if (typeof value === 'string' && value.startsWith('data:image')) {
-            const response = await fetch(value);
-            const blob = await response.blob();
-            formData.append('image', blob, 'image.jpg');
+            // Get the base64 part (after the comma)
+            const base64String = value.split(',')[1];
+            // Check size to make sure it's under limit (base64 is ~4/3 times larger than binary)
+            const estimatedSize = (base64String.length * 3) / 4;
+
+            if (estimatedSize > 1024 * 1024 * 2) {
+              console.warn('Image is too large, using reduced quality version');
+              // Create a lower quality version of the image
+              const img = new Image();
+              await new Promise((resolve) => {
+                img.onload = resolve;
+                img.src = value;
+              });
+
+              const canvas = document.createElement('canvas');
+              canvas.width = img.width;
+              canvas.height = img.height;
+              const ctx = canvas.getContext('2d');
+              ctx?.drawImage(img, 0, 0);
+
+              // Get compressed image as data URL (JPEG with quality 0.7)
+              const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
+              const response = await fetch(compressedDataUrl);
+              const blob = await response.blob();
+              formData.append('image', blob, 'image.jpg');
+            } else {
+              const response = await fetch(value);
+              const blob = await response.blob();
+              formData.append('image', blob, 'image.jpg');
+            }
           } else {
             formData.append(key, value as string);
           }

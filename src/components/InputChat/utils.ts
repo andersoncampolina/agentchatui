@@ -89,9 +89,58 @@ export const handleImageUpload = (
   file: File,
   setUploadedImage: (image: string) => void
 ) => {
+  // Max size in bytes (1MB)
+  const MAX_SIZE = 1024 * 1024;
+
+  // If file is already small enough, use the simpler approach
+  if (file.size <= MAX_SIZE) {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setUploadedImage(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+    return;
+  }
+
+  // Otherwise, compress the image
   const reader = new FileReader();
-  reader.onloadend = () => {
-    setUploadedImage(reader.result as string);
+  reader.onload = (event) => {
+    const img = new Image();
+    img.onload = () => {
+      // Create canvas for image compression
+      const canvas = document.createElement('canvas');
+
+      // Calculate new dimensions while maintaining aspect ratio
+      let width = img.width;
+      let height = img.height;
+      const maxDimension = 1200;
+
+      if (width > height && width > maxDimension) {
+        height = (height * maxDimension) / width;
+        width = maxDimension;
+      } else if (height > maxDimension) {
+        width = (width * maxDimension) / height;
+        height = maxDimension;
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+
+      // Draw image on canvas at new dimensions
+      const ctx = canvas.getContext('2d');
+      ctx?.drawImage(img, 0, 0, width, height);
+
+      // Get compressed image as data URL (JPEG with quality 0.8)
+      const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+
+      // Set the compressed image
+      setUploadedImage(compressedDataUrl);
+    };
+
+    if (event.target?.result) {
+      img.src = event.target.result as string;
+    }
   };
+
   reader.readAsDataURL(file);
 };
