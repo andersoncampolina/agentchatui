@@ -11,14 +11,9 @@ export async function POST(request: Request) {
     const isProduction: boolean = process.env.ENVIRONMENT === 'production';
 
     // Get webhook ID from FormData
-    const webhookId = formData.get('webhookId') as string;
+    const webhookId = (formData.get('webhookId') as string) || 'conversation';
 
-    // Validate essential fields
-    if (!webhookId) {
-      throw new Error('webhookId is required');
-    }
-
-    // Determine webhook URL
+    // Determine webhook URL based on environment
     let webhookUrl;
     if (isProduction) {
       webhookUrl = `https://n8n.renthub.com.br/webhook/${webhookId}`;
@@ -41,7 +36,6 @@ export async function POST(request: Request) {
     });
 
     // Send the request to n8n
-    console.log(`Sending FormData request to: ${webhookUrl}`);
     const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: {

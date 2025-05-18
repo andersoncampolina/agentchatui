@@ -271,10 +271,7 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
       model,
       prompt: userInput,
       image: imageData,
-      webhookId:
-        process.env.ENVIRONMENT === 'production'
-          ? 'conversation'
-          : 'conversation-teste',
+      webhookId: 'conversation',
       conversationId: conversationId.toString(),
     });
   };
@@ -287,10 +284,7 @@ export function InputChat({ model = 'gpt-4o-mini' }: InputChatProps) {
     await sendApiRequest({
       model,
       audioBase64,
-      webhookId:
-        process.env.ENVIRONMENT === 'production'
-          ? 'conversation'
-          : 'conversation-teste',
+      webhookId: 'conversation',
       conversationId: conversationId.toString(),
     });
   };
