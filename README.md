@@ -4,7 +4,7 @@ A modern, open-source Next.js web application that provides a simple interface t
 
 See a online version here: https://agentchatui.com
 
-<img src="/public/assets/images/agent-ui-example.jpeg" alt="Agent UI Screenshot" width="600"/>
+<img src="/public/assets/images/agent-ui-example.jpeg" alt="Agent UI Screenshot" width="350"/>
 
 ## Features
 
