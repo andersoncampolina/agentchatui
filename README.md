@@ -276,4 +276,4 @@ For questions and support:
 
 ---
 
-Built with ❤️ using Next.js, React, and Tailwind CSS
+Built with ❤️ by Anderson Campolina
