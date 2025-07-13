@@ -2,6 +2,10 @@
 
 A modern, open-source Next.js web application that provides a simple interface to connect with AI models and automation tools via webhooks and direct API integration.
 
+See a online version here: https://agentchatui.com
+
+![Agent UI Screenshot](/public/assets/images/agent-ui-screen.jpeg)
+
 ## Features
 
 - 🤖 Clean, intuitive interface for AI interactions
